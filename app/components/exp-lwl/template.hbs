@@ -1,5 +1,46 @@
-<div class="exp-lwl-diagnostic">
-    <h1 class="exp-lwl-diagnostic__title">
-        EXP-LWL LOADED
-    </h1>
+<div class="exp-lwl__screen">
+    {{#if paused}}
+        <div class="exp-lwl__message">
+            <h2>Paused</h2>
+            <p>
+                Press {{pauseKeyDescription}} or select Continue when you are
+                ready.
+            </p>
+            <button
+                type="button"
+                class="btn btn-primary"
+                {{action "togglePause"}}
+            >
+                Continue
+            </button>
+        </div>
+    {{else}}
+        {{#if (eq phase "stimulus")}}
+            <div class="exp-lwl__stimuli">
+                <div class="exp-lwl__image-cell">
+                    <img
+                        class="exp-lwl__image"
+                        src={{leftImageUrl}}
+                        alt=""
+                    >
+                </div>
+
+                <div class="exp-lwl__image-cell">
+                    <img
+                        class="exp-lwl__image"
+                        src={{rightImageUrl}}
+                        alt=""
+                    >
+                </div>
+            </div>
+        {{else}}
+            <div class="exp-lwl__message">
+                {{#if (eq phase "intertrial")}}
+                    <span class="exp-lwl__fixation" aria-hidden="true">+</span>
+                {{else}}
+                    <p>Please wait…</p>
+                {{/if}}
+            </div>
+        {{/if}}
+    {{/if}}
 </div>
