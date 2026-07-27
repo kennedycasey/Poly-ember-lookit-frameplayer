@@ -7,19 +7,24 @@ export const WORDS = [
     'horn'
 ];
 
-export const STIMULI = Object.fromEntries(
-    WORDS.map(word => [
-        word,
-        {
+function createStimuli(words) {
+    const stimuli = {};
+
+    words.forEach(function(word) {
+        stimuli[word] = {
             conventional: [
-                `${word}1.png`,
-                `${word}2.png`
+                word + '1.png',
+                word + '2.png'
             ],
-            extension: `${word}-ext.png`,
-            audio: `${word}.mp3`
-        }
-    ])
-);
+            extension: word + '-ext.png',
+            audio: word + '.mp3'
+        };
+    });
+
+    return stimuli;
+}
+
+export const STIMULI = createStimuli(WORDS);
 
 export const CONDITION_ORDERS = [
     ['conventional', 'novel_extension', 'challenge'],
@@ -34,9 +39,10 @@ export function mulberry32(seed) {
     let value = seed >>> 0;
 
     return function random() {
-        value += 0x6D2B79F5;
+        let result;
 
-        let result = value;
+        value += 0x6D2B79F5;
+        result = value;
 
         result = Math.imul(
             result ^ (result >>> 15),
@@ -55,15 +61,29 @@ export function mulberry32(seed) {
 }
 
 export function participantIdToNumber(participantId) {
-    const text = String(participantId ?? '0').trim();
+    let participantIdForText;
+    let text;
+    let hash;
+    let index;
+
+    if (
+        participantId === null ||
+        participantId === undefined
+    ) {
+        participantIdForText = '0';
+    } else {
+        participantIdForText = participantId;
+    }
+
+    text = String(participantIdForText).trim();
 
     if (/^\d+$/.test(text)) {
         return Number(text) >>> 0;
     }
 
-    let hash = 2166136261;
+    hash = 2166136261;
 
-    for (let index = 0; index < text.length; index += 1) {
+    for (index = 0; index < text.length; index += 1) {
         hash ^= text.charCodeAt(index);
         hash = Math.imul(hash, 16777619);
     }
@@ -71,186 +91,312 @@ export function participantIdToNumber(participantId) {
     return hash >>> 0;
 }
 
-export function shuffle(items, random = Math.random) {
-    const output = [...items];
+export function shuffle(items, random) {
+    const output = items.slice();
+    let index;
+    let swapIndex;
+    let temporaryValue;
 
-    for (let index = output.length - 1; index > 0; index -= 1) {
-        const swapIndex = Math.floor(random() * (index + 1));
+    if (typeof random !== 'function') {
+        random = Math.random;
+    }
 
-        [
-            output[index],
-            output[swapIndex]
-        ] = [
-            output[swapIndex],
-            output[index]
-        ];
+    for (
+        index = output.length - 1;
+        index > 0;
+        index -= 1
+    ) {
+        swapIndex = Math.floor(
+            random() * (index + 1)
+        );
+
+        temporaryValue = output[index];
+        output[index] = output[swapIndex];
+        output[swapIndex] = temporaryValue;
     }
 
     return output;
 }
 
-export function createYoking(words = WORDS, random = Math.random) {
-    if (words.length < 2) {
-        throw new Error('At least two words are required.');
+export function createYoking(words, random) {
+    let foilWords;
+    let hasFixedPoint;
+    let index;
+    const yoking = {};
+
+    if (!words) {
+        words = WORDS;
     }
 
-    let foilWords;
+    if (typeof random !== 'function') {
+        random = Math.random;
+    }
 
-    do {
-        foilWords = shuffle(words, random);
-    } while (
-        foilWords.some((foilWord, index) => foilWord === words[index])
-    );
-
-    return Object.fromEntries(
-        words.map((word, index) => [word, foilWords[index]])
-    );
-}
-
-function assignBalancedSides(trials, random = Math.random) {
-    if (trials.length % 2 !== 0) {
+    if (words.length < 2) {
         throw new Error(
-            `Cannot exactly balance ${trials.length} trials.`
+            'At least two words are required.'
         );
     }
 
+    do {
+        foilWords = shuffle(words, random);
+        hasFixedPoint = false;
+
+        for (
+            index = 0;
+            index < words.length;
+            index += 1
+        ) {
+            if (foilWords[index] === words[index]) {
+                hasFixedPoint = true;
+                break;
+            }
+        }
+    } while (hasFixedPoint);
+
+    words.forEach(function(word, wordIndex) {
+        yoking[word] = foilWords[wordIndex];
+    });
+
+    return yoking;
+}
+
+function copyTrial(trial) {
+    const copiedTrial = {};
+
+    Object.keys(trial).forEach(function(key) {
+        copiedTrial[key] = trial[key];
+    });
+
+    return copiedTrial;
+}
+
+function assignBalancedSides(trials, random) {
+    const targetSides = [];
+    const assignedTrials = [];
     const half = trials.length / 2;
-    const targetSides = shuffle(
-        [
-            ...Array(half).fill('left'),
-            ...Array(half).fill('right')
-        ],
+    let index;
+    let targetSide;
+    let targetIsLeft;
+    let assignedTrial;
+
+    if (typeof random !== 'function') {
+        random = Math.random;
+    }
+
+    if (trials.length % 2 !== 0) {
+        throw new Error(
+            'Cannot exactly balance ' +
+            trials.length +
+            ' trials.'
+        );
+    }
+
+    for (index = 0; index < half; index += 1) {
+        targetSides.push('left');
+        targetSides.push('right');
+    }
+
+    const shuffledSides = shuffle(
+        targetSides,
         random
     );
 
-    return trials.map((trial, index) => {
-        const targetSide = targetSides[index];
-        const targetIsLeft = targetSide === 'left';
+    trials.forEach(function(trial, trialIndex) {
+        targetSide = shuffledSides[trialIndex];
+        targetIsLeft = targetSide === 'left';
+        assignedTrial = copyTrial(trial);
 
-        return {
-            ...trial,
-            targetSide,
-            leftImage: targetIsLeft
-                ? trial.targetImage
-                : trial.foilImage,
-            rightImage: targetIsLeft
-                ? trial.foilImage
-                : trial.targetImage
-        };
+        assignedTrial.targetSide = targetSide;
+
+        assignedTrial.leftImage = targetIsLeft
+            ? trial.targetImage
+            : trial.foilImage;
+
+        assignedTrial.rightImage = targetIsLeft
+            ? trial.foilImage
+            : trial.targetImage;
+
+        assignedTrials.push(assignedTrial);
     });
+
+    return assignedTrials;
 }
 
-export function generateConventionalBlock({
-    stimuli = STIMULI,
-    yoking,
-    random = Math.random
-} = {}) {
-    const resolvedYoking = yoking ?? createYoking(WORDS, random);
+export function generateConventionalBlock(options) {
+    let stimuli;
+    let yoking;
+    let random;
+    let resolvedYoking;
     const trials = [];
 
-    for (const word of WORDS) {
+    options = options || {};
+
+    stimuli = options.stimuli || STIMULI;
+    yoking = options.yoking;
+    random = typeof options.random === 'function'
+        ? options.random
+        : Math.random;
+
+    resolvedYoking = yoking ||
+        createYoking(WORDS, random);
+
+    WORDS.forEach(function(word) {
         const foilWord = resolvedYoking[word];
 
-        stimuli[word].conventional.forEach((targetImage, imageIndex) => {
-            const foilImage =
-                stimuli[foilWord].conventional[imageIndex];
+        stimuli[word].conventional.forEach(
+            function(targetImage, imageIndex) {
+                const foilImage =
+                    stimuli[foilWord]
+                        .conventional[imageIndex];
 
-            for (let repetition = 1; repetition <= 2; repetition += 1) {
-                trials.push({
-                    condition: 'conventional',
-                    word,
-                    audio: stimuli[word].audio,
-                    targetImage,
-                    targetType: 'conventional',
-                    foilWord,
-                    foilImage,
-                    foilType: 'conventional',
-                    conventionalImageNumber: imageIndex + 1,
-                    repetition
-                });
+                let repetition;
+
+                for (
+                    repetition = 1;
+                    repetition <= 2;
+                    repetition += 1
+                ) {
+                    trials.push({
+                        condition: 'conventional',
+                        word: word,
+                        audio: stimuli[word].audio,
+                        targetImage: targetImage,
+                        targetType: 'conventional',
+                        foilWord: foilWord,
+                        foilImage: foilImage,
+                        foilType: 'conventional',
+                        conventionalImageNumber:
+                            imageIndex + 1,
+                        repetition: repetition
+                    });
+                }
             }
-        });
-    }
+        );
+    });
 
-    return assignBalancedSides(shuffle(trials, random), random);
+    return assignBalancedSides(
+        shuffle(trials, random),
+        random
+    );
 }
 
-export function generateNovelExtensionBlock({
-    stimuli = STIMULI,
-    yoking,
-    random = Math.random
-} = {}) {
-    const resolvedYoking = yoking ?? createYoking(WORDS, random);
+export function generateNovelExtensionBlock(options) {
+    let stimuli;
+    let yoking;
+    let random;
+    let resolvedYoking;
     const trials = [];
 
-    for (const word of WORDS) {
-        const foilWord = resolvedYoking[word];
+    options = options || {};
 
-        for (let repetition = 1; repetition <= 2; repetition += 1) {
+    stimuli = options.stimuli || STIMULI;
+    yoking = options.yoking;
+    random = typeof options.random === 'function'
+        ? options.random
+        : Math.random;
+
+    resolvedYoking = yoking ||
+        createYoking(WORDS, random);
+
+    WORDS.forEach(function(word) {
+        const foilWord = resolvedYoking[word];
+        let repetition;
+
+        for (
+            repetition = 1;
+            repetition <= 2;
+            repetition += 1
+        ) {
             trials.push({
                 condition: 'novel_extension',
-                word,
+                word: word,
                 audio: stimuli[word].audio,
-                targetImage: stimuli[word].extension,
+                targetImage:
+                    stimuli[word].extension,
                 targetType: 'extension',
-                foilWord,
-                foilImage: stimuli[foilWord].extension,
+                foilWord: foilWord,
+                foilImage:
+                    stimuli[foilWord].extension,
                 foilType: 'extension',
-                repetition
+                repetition: repetition
             });
         }
-    }
+    });
 
-    return assignBalancedSides(shuffle(trials, random), random);
+    return assignBalancedSides(
+        shuffle(trials, random),
+        random
+    );
 }
 
-export function generateChallengeBlock({
-    stimuli = STIMULI,
-    random = Math.random,
-    challengeTarget = 'conventional'
-} = {}) {
+export function generateChallengeBlock(options) {
+    let stimuli;
+    let random;
+    let challengeTarget;
+    const trials = [];
+
+    options = options || {};
+
+    stimuli = options.stimuli || STIMULI;
+
+    random = typeof options.random === 'function'
+        ? options.random
+        : Math.random;
+
+    challengeTarget =
+        options.challengeTarget || 'conventional';
+
     if (
         challengeTarget !== 'conventional' &&
         challengeTarget !== 'extension'
     ) {
         throw new Error(
-            'challengeTarget must be "conventional" or "extension".'
+            'challengeTarget must be ' +
+            '"conventional" or "extension".'
         );
     }
 
-    const trials = [];
-
-    for (const word of WORDS) {
+    WORDS.forEach(function(word) {
         stimuli[word].conventional.forEach(
-            (conventionalImage, imageIndex) => {
+            function(conventionalImage, imageIndex) {
                 const conventionalIsTarget =
-                    challengeTarget === 'conventional';
+                    challengeTarget ===
+                    'conventional';
 
                 trials.push({
                     condition: 'challenge',
-                    word,
+                    word: word,
                     audio: stimuli[word].audio,
-                    targetImage: conventionalIsTarget
-                        ? conventionalImage
-                        : stimuli[word].extension,
-                    targetType: conventionalIsTarget
-                        ? 'conventional'
-                        : 'extension',
+                    targetImage:
+                        conventionalIsTarget
+                            ? conventionalImage
+                            : stimuli[word].extension,
+                    targetType:
+                        conventionalIsTarget
+                            ? 'conventional'
+                            : 'extension',
                     foilWord: word,
-                    foilImage: conventionalIsTarget
-                        ? stimuli[word].extension
-                        : conventionalImage,
-                    foilType: conventionalIsTarget
-                        ? 'extension'
-                        : 'conventional',
-                    conventionalImageNumber: imageIndex + 1,
+                    foilImage:
+                        conventionalIsTarget
+                            ? stimuli[word].extension
+                            : conventionalImage,
+                    foilType:
+                        conventionalIsTarget
+                            ? 'extension'
+                            : 'conventional',
+                    conventionalImageNumber:
+                        imageIndex + 1,
                     repetition: 1
                 });
             }
         );
-    }
+    });
 
-    return assignBalancedSides(shuffle(trials, random), random);
+    return assignBalancedSides(
+        shuffle(trials, random),
+        random
+    );
 }
 
 export function validateTrialList(trials) {
@@ -262,47 +408,71 @@ export function validateTrialList(trials) {
 
     if (trials.length !== 48) {
         throw new Error(
-            `Expected 48 trials, received ${trials.length}.`
+            'Expected 48 trials, received ' +
+            trials.length +
+            '.'
         );
     }
 
-    for (
-        const [condition, expectedCount]
-        of Object.entries(expectedCounts)
-    ) {
-        const block = trials.filter(
-            trial => trial.condition === condition
-        );
+    Object.keys(expectedCounts).forEach(
+        function(condition) {
+            const expectedCount =
+                expectedCounts[condition];
 
-        if (block.length !== expectedCount) {
-            throw new Error(
-                `${condition}: expected ${expectedCount} trials, ` +
-                `received ${block.length}.`
+            const block = trials.filter(
+                function(trial) {
+                    return (
+                        trial.condition === condition
+                    );
+                }
             );
+
+            const leftCount = block.filter(
+                function(trial) {
+                    return (
+                        trial.targetSide === 'left'
+                    );
+                }
+            ).length;
+
+            const rightCount = block.filter(
+                function(trial) {
+                    return (
+                        trial.targetSide === 'right'
+                    );
+                }
+            ).length;
+
+            if (block.length !== expectedCount) {
+                throw new Error(
+                    condition +
+                    ': expected ' +
+                    expectedCount +
+                    ' trials, received ' +
+                    block.length +
+                    '.'
+                );
+            }
+
+            if (
+                leftCount !== expectedCount / 2 ||
+                rightCount !== expectedCount / 2
+            ) {
+                throw new Error(
+                    condition +
+                    ': target sides are not ' +
+                    'exactly balanced.'
+                );
+            }
         }
+    );
 
-        const leftCount = block.filter(
-            trial => trial.targetSide === 'left'
-        ).length;
-
-        const rightCount = block.filter(
-            trial => trial.targetSide === 'right'
-        ).length;
-
-        if (
-            leftCount !== expectedCount / 2 ||
-            rightCount !== expectedCount / 2
-        ) {
-            throw new Error(
-                `${condition}: target sides are not exactly balanced.`
-            );
-        }
-    }
-
-    trials.forEach(trial => {
+    trials.forEach(function(trial) {
         if (trial.targetImage === trial.foilImage) {
             throw new Error(
-                `Trial ${trial.trialNumber} has identical images.`
+                'Trial ' +
+                trial.trialNumber +
+                ' has identical images.'
             );
         }
     });
@@ -312,80 +482,168 @@ export function validateTrialList(trials) {
 
 export function createParticipantTrials(
     participantId,
-    {
-        seed,
-        challengeTarget = 'conventional',
-        reuseYokingAcrossBlocks = true
-    } = {}
+    options
 ) {
-    const participantNumber = participantIdToNumber(participantId);
-    const resolvedSeed = Number.isInteger(seed)
-        ? seed
-        : participantNumber;
+    let seed;
+    let challengeTarget;
+    let reuseYokingAcrossBlocks;
+    let resolvedSeed;
+    let random;
+    let blockOrderIndex;
+    let blockOrder;
+    let sharedYoking;
+    let conventionalYoking;
+    let extensionYoking;
+    let participantIdForOutput;
 
-    const random = mulberry32(resolvedSeed);
-    const blockOrderIndex =
-        participantNumber % CONDITION_ORDERS.length;
-    const blockOrder = CONDITION_ORDERS[blockOrderIndex];
-
-    const sharedYoking = createYoking(WORDS, random);
-
-    const conventionalYoking = reuseYokingAcrossBlocks
-        ? sharedYoking
-        : createYoking(WORDS, random);
-
-    const extensionYoking = reuseYokingAcrossBlocks
-        ? sharedYoking
-        : createYoking(WORDS, random);
-
-    const blocks = {
-        conventional: generateConventionalBlock({
-            stimuli: STIMULI,
-            yoking: conventionalYoking,
-            random
-        }),
-        novel_extension: generateNovelExtensionBlock({
-            stimuli: STIMULI,
-            yoking: extensionYoking,
-            random
-        }),
-        challenge: generateChallengeBlock({
-            stimuli: STIMULI,
-            random,
-            challengeTarget
-        })
-    };
+    const participantNumber =
+        participantIdToNumber(participantId);
 
     const trials = [];
     let overallTrialNumber = 1;
 
-    blockOrder.forEach((condition, blockIndex) => {
-        blocks[condition].forEach((trial, trialWithinBlockIndex) => {
-            trials.push({
-                ...trial,
-                participantId: String(participantId),
-                seed: resolvedSeed,
-                counterbalanceVersion: blockOrderIndex + 1,
-                blockOrder: [...blockOrder],
-                blockNumber: blockIndex + 1,
-                trialWithinBlock: trialWithinBlockIndex + 1,
-                trialNumber: overallTrialNumber
-            });
+    options = options || {};
 
-            overallTrialNumber += 1;
-        });
-    });
+    seed = options.seed;
+
+    challengeTarget =
+        options.challengeTarget ||
+        'conventional';
+
+    reuseYokingAcrossBlocks =
+        options.reuseYokingAcrossBlocks;
+
+    if (
+        reuseYokingAcrossBlocks === undefined ||
+        reuseYokingAcrossBlocks === null
+    ) {
+        reuseYokingAcrossBlocks = true;
+    }
+
+    if (
+        typeof seed === 'number' &&
+        isFinite(seed) &&
+        Math.floor(seed) === seed
+    ) {
+        resolvedSeed = seed;
+    } else {
+        resolvedSeed = participantNumber;
+    }
+
+    random = mulberry32(resolvedSeed);
+
+    blockOrderIndex =
+        participantNumber %
+        CONDITION_ORDERS.length;
+
+    blockOrder =
+        CONDITION_ORDERS[blockOrderIndex].slice();
+
+    sharedYoking = createYoking(
+        WORDS,
+        random
+    );
+
+    if (reuseYokingAcrossBlocks) {
+        conventionalYoking = sharedYoking;
+        extensionYoking = sharedYoking;
+    } else {
+        conventionalYoking = createYoking(
+            WORDS,
+            random
+        );
+
+        extensionYoking = createYoking(
+            WORDS,
+            random
+        );
+    }
+
+    const blocks = {
+        conventional:
+            generateConventionalBlock({
+                stimuli: STIMULI,
+                yoking: conventionalYoking,
+                random: random
+            }),
+
+        novel_extension:
+            generateNovelExtensionBlock({
+                stimuli: STIMULI,
+                yoking: extensionYoking,
+                random: random
+            }),
+
+        challenge:
+            generateChallengeBlock({
+                stimuli: STIMULI,
+                random: random,
+                challengeTarget:
+                    challengeTarget
+            })
+    };
+
+    if (
+        participantId === null ||
+        participantId === undefined
+    ) {
+        participantIdForOutput = '';
+    } else {
+        participantIdForOutput =
+            String(participantId);
+    }
+
+    blockOrder.forEach(
+        function(condition, blockIndex) {
+            blocks[condition].forEach(
+                function(
+                    trial,
+                    trialWithinBlockIndex
+                ) {
+                    const outputTrial =
+                        copyTrial(trial);
+
+                    outputTrial.participantId =
+                        participantIdForOutput;
+
+                    outputTrial.seed =
+                        resolvedSeed;
+
+                    outputTrial.counterbalanceVersion =
+                        blockOrderIndex + 1;
+
+                    outputTrial.blockOrder =
+                        blockOrder.slice();
+
+                    outputTrial.blockNumber =
+                        blockIndex + 1;
+
+                    outputTrial.trialWithinBlock =
+                        trialWithinBlockIndex + 1;
+
+                    outputTrial.trialNumber =
+                        overallTrialNumber;
+
+                    trials.push(outputTrial);
+                    overallTrialNumber += 1;
+                }
+            );
+        }
+    );
 
     validateTrialList(trials);
 
     return {
-        trials,
+        trials: trials,
         seed: resolvedSeed,
-        counterbalanceVersion: blockOrderIndex + 1,
-        blockOrder: [...blockOrder],
+        counterbalanceVersion:
+            blockOrderIndex + 1,
+        blockOrder: blockOrder.slice(),
         yoking: {
-            conventional: conventionalYoking,
-            novelExtension: extensionYoking
+            conventional:
+                conventionalYoking,
+            novelExtension:
+                extensionYoking
         }
     };
 }
