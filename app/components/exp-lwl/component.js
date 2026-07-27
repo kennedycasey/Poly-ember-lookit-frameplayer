@@ -171,9 +171,10 @@ export default ExpFrameBaseComponent.extend(VideoRecord, {
         this._super(...arguments);
     },
 
-    onRecordingStarted() {
-        this.beginExperiment();
-    },
+onRecordingStarted() {
+    this.hideRecorder();
+    this.beginExperiment();
+},
 
     participantIdentifier() {
         const session = this.get('session');

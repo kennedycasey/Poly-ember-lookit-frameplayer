@@ -1,4 +1,6 @@
 <div class="exp-lwl__screen">
+    <div id="recorder"></div>
+
     {{#if paused}}
         <div class="exp-lwl__message">
             <h2>Paused</h2>
@@ -6,6 +8,7 @@
                 Press {{pauseKeyDescription}} or select Continue when you are
                 ready.
             </p>
+
             <button
                 type="button"
                 class="btn btn-primary"
@@ -36,7 +39,12 @@
         {{else}}
             <div class="exp-lwl__message">
                 {{#if (eq phase "intertrial")}}
-                    <span class="exp-lwl__fixation" aria-hidden="true">+</span>
+                    <span
+                        class="exp-lwl__fixation"
+                        aria-hidden="true"
+                    >
+                        +
+                    </span>
                 {{else}}
                     <p>Please wait…</p>
                 {{/if}}
