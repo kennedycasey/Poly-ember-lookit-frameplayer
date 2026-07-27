@@ -24,14 +24,16 @@ export default ExpFrameBaseComponent.extend(VideoRecord, {
     startRecordingAutomatically: computed.alias('doRecording'),
 
     frameSchemaProperties: {
-        imageBaseUrl: {
-            type: 'string',
-            default: ''
-        },
-        audioBaseUrl: {
-            type: 'string',
-            default: ''
-        },
+imageBaseUrl: {
+    type: 'string',
+    default:
+        'https://raw.githubusercontent.com/kennedycasey/Poly-Lookit/master/img'
+},
+audioBaseUrl: {
+    type: 'string',
+    default:
+        'https://raw.githubusercontent.com/kennedycasey/Poly-Lookit/master/mp3'
+},
         imageDuration: {
             type: 'number',
             minimum: 1,
@@ -187,6 +189,9 @@ onRecordingStarted() {
         if (this.get('experimentStarted') || this.get('isDestroyed')) {
             return;
         }
+
+        console.log('exp-lwl imageBaseUrl:', this.get('imageBaseUrl'));
+        console.log('exp-lwl audioBaseUrl:', this.get('audioBaseUrl'));
 
         const participantId = this.participantIdentifier();
         const generated = createParticipantTrials(participantId, {
