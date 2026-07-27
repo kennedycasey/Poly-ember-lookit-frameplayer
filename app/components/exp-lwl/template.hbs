@@ -38,14 +38,13 @@
             </div>
         {{else}}
             <div class="exp-lwl__message">
-                {{#if (eq phase "intertrial")}}
-                    <span
-                        class="exp-lwl__fixation"
-                        aria-hidden="true"
-                    >
-                        +
-                    </span>
-                {{else}}
+{{#if (eq phase "intertrial")}}
+    <img
+        class="exp-lwl__fixation-image"
+        src={{fixationImageUrl}}
+        alt=""
+    >
+{{else}}
                     <p>Please wait…</p>
                 {{/if}}
             </div>

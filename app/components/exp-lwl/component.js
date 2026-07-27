@@ -34,6 +34,10 @@ audioBaseUrl: {
     default:
         'https://raw.githubusercontent.com/kennedycasey/Poly-Lookit/master/mp3'
 },
+fixationImage: {
+    type: 'string',
+    default: 'fixation.gif'
+},
         imageDuration: {
             type: 'number',
             minimum: 1,
@@ -47,7 +51,7 @@ audioBaseUrl: {
         interTrialInterval: {
             type: 'number',
             minimum: 0,
-            default: 1000
+            default: 500
         },
         challengeTarget: {
             type: 'string',
@@ -144,6 +148,16 @@ audioBaseUrl: {
                 : '';
         }
     ),
+    fixationImageUrl: computed(
+    'fixationImage',
+    'imageBaseUrl',
+    function() {
+        return this.joinUrl(
+            this.get('imageBaseUrl'),
+            this.get('fixationImage')
+        );
+    }
+),
 
     init() {
         this._super(...arguments);
@@ -224,79 +238,81 @@ onRecordingStarted() {
         this.startCurrentTrial();
     },
 
+    preloadImage(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+
+        img.onload = resolve;
+        img.onerror = reject;
+
+        img.src = url;
+    });
+},
+
     startCurrentTrial() {
-        if (this.get('paused') || this.get('finishing')) {
+    if (this.get('paused') || this.get('finishing')) {
+        return;
+    }
+
+    const trials = this.get('trials') || [];
+    const index = this.get('currentTrialIndex');
+
+    if (index >= trials.length) {
+        this.finishExperiment();
+        return;
+    }
+
+    const trial = trials[index];
+
+    const leftUrl = this.joinUrl(
+        this.get('imageBaseUrl'),
+        trial.leftImage
+    );
+
+    const rightUrl = this.joinUrl(
+        this.get('imageBaseUrl'),
+        trial.rightImage
+    );
+
+    Promise.all([
+        this.preloadImage(leftUrl),
+        this.preloadImage(rightUrl)
+    ]).then(() => {
+
+        if (this.get('isDestroyed')) {
             return;
         }
-
-        const trials = this.get('trials') || [];
-        const index = this.get('currentTrialIndex');
-
-        if (index >= trials.length) {
-            this.finishExperiment();
-            return;
-        }
-
-        const trial = trials[index];
 
         this.setProperties({
             currentTrial: trial,
             phase: 'stimulus'
         });
 
-        this.send('setTimeEvent', 'trialStarted', this.trialEventData(trial));
+        this.send(
+            'setTimeEvent',
+            'trialStarted',
+            this.trialEventData(trial)
+        );
 
         this.set(
             'audioTimer',
-            run.later(this, this.playTrialAudio, this.get('audioDelay'))
+            run.later(
+                this,
+                this.playTrialAudio,
+                this.get('audioDelay')
+            )
         );
 
         this.set(
             'trialTimer',
-            run.later(this, this.endCurrentTrial, this.get('imageDuration'))
+            run.later(
+                this,
+                this.endCurrentTrial,
+                this.get('imageDuration')
+            )
         );
-    },
-
-    playTrialAudio() {
-        if (this.get('paused') || !this.get('currentTrial')) {
-            return;
-        }
-
-        const trial = this.get('currentTrial');
-        const audioUrl = this.joinUrl(this.get('audioBaseUrl'), trial.audio);
-        const audio = new Audio(audioUrl);
-
-        this.set('audioElement', audio);
-
-        audio.addEventListener('play', () => {
-            if (!this.get('isDestroyed')) {
-                this.send('setTimeEvent', 'audioStarted', {
-                    ...this.trialEventData(trial),
-                    audioUrl
-                });
-            }
-        }, {once: true});
-
-        audio.addEventListener('ended', () => {
-            if (!this.get('isDestroyed')) {
-                this.send(
-                    'setTimeEvent',
-                    'audioEnded',
-                    this.trialEventData(trial)
-                );
-            }
-        }, {once: true});
-
-        audio.play().catch(error => {
-            if (!this.get('isDestroyed')) {
-                this.send('setTimeEvent', 'audioError', {
-                    ...this.trialEventData(trial),
-                    audioUrl,
-                    errorMessage: error.message
-                });
-            }
-        });
-    },
+    });
+},
 
     endCurrentTrial() {
         const trial = this.get('currentTrial');
