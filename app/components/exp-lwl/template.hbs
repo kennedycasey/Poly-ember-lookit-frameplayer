@@ -42,6 +42,24 @@
                 </div>
             </div>
 
+        {{else if (eq phase "light")}}
+            <div class="exp-lwl__message">
+                <img
+                    class="exp-lwl__fixation-image"
+                    src={{lightImageUrl}}
+                    alt=""
+                >
+            </div>
+
+        {{else if (eq phase "dark")}}
+            <div class="exp-lwl__message">
+                <img
+                    class="exp-lwl__fixation-image"
+                    src={{darkImageUrl}}
+                    alt=""
+                >
+            </div>
+
         {{else if (eq phase "intro")}}
             <div class="exp-lwl__message">
                 <img
@@ -97,11 +115,6 @@
                     onended={{action "attentionEnded"}}
                     onerror={{action "attentionEnded"}}
                 ></video>
-            </div>
-
-        {{else if (eq phase "finished")}}
-            <div class="exp-lwl__message">
-                <p>Please wait…</p>
             </div>
 
         {{else}}

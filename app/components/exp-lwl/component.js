@@ -65,8 +65,24 @@ attentionVideos: {
     type: 'array',
     default: [
         'AG1.mp4',
-        'AG2.mp4'
+        'AG2.mp4', 
+        'AG3.mp4'
     ]
+},
+
+lightImage: {
+    type: 'string',
+    default: 'light.png'
+},
+
+darkImage: {
+    type: 'string',
+    default: 'dark.png'
+},
+
+lightDarkDuration: {
+    type: 'number',
+    default: 750
 },
 
 attentionEveryNTrials: {
@@ -195,6 +211,28 @@ itiAudio: {
                 : '';
         }
     ),
+
+    lightImageUrl: computed(
+    'lightImage',
+    'imageBaseUrl',
+    function() {
+        return this.joinUrl(
+            this.get('imageBaseUrl'),
+            this.get('lightImage')
+        );
+    }
+),
+
+darkImageUrl: computed(
+    'darkImage',
+    'imageBaseUrl',
+    function() {
+        return this.joinUrl(
+            this.get('imageBaseUrl'),
+            this.get('darkImage')
+        );
+    }
+),
 
     itiAudioUrl: computed(
     'itiAudio',
@@ -538,31 +576,34 @@ advanceCalibration() {
 finishCalibration() {
     this.cancelTimer('interTrialTimer');
 
-    this.send(
-        'setTimeEvent',
-        'calibrationEnded',
-        {
-            repeats:
-                this.get('calibrationRepeats')
-        }
-    );
-
-    this.setProperties({
-        phase: 'intro',
-        calibrationStep: 0,
-        currentTrial: null
+    this.send('setTimeEvent', 'calibrationEnded', {
+        repeats: this.get('calibrationRepeats')
     });
 
-    this.send(
-        'setTimeEvent',
-        'introScreenShown',
-        {}
-    );
+    this.set('phase', 'light');
 
-    run.next(
-        this,
-        this.playIntroAudio
+    this.set(
+        'interTrialTimer',
+        run.later(this, () => {
+            this.showDarkScreen();
+        }, this.get('lightDarkDuration'))
     );
+},
+showDarkScreen() {
+    this.set('phase', 'dark');
+
+    this.set(
+        'interTrialTimer',
+        run.later(this, () => {
+            this.showIntroScreen();
+        }, this.get('lightDarkDuration'))
+    );
+},
+
+showIntroScreen() {
+    this.set('phase', 'intro');
+
+    run.next(this, this.playIntroAudio);
 },
     startCurrentTrial() {
     if (this.get('paused') || this.get('finishing')) {
