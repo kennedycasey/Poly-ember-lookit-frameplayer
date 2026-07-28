@@ -615,28 +615,50 @@ startLightDarkSequence() {
     this.cancelTimer('interTrialTimer');
     this.stopAudio();
 
-    this.setProperties({
-        phase: 'light',
-        currentTrial: null
-    });
+    const lightUrl = this.get('lightImageUrl');
+    const darkUrl = this.get('darkImageUrl');
 
-    this.send(
-        'setTimeEvent',
-        'lightScreenStarted',
-        {
-            imageUrl:
-                this.get('lightImageUrl'),
-            duration:
-                this.get('lightDarkDuration')
+    Promise.all([
+        this.preloadImage(lightUrl),
+        this.preloadImage(darkUrl)
+    ]).then(() => {
+        if (
+            this.get('paused') ||
+            this.get('finishing') ||
+            this.get('isDestroyed')
+        ) {
+            return;
         }
-    );
 
-    this.set(
-        'interTrialTimer',
-        run.later(this, () => {
-            this.showDarkScreen();
-        }, this.get('lightDarkDuration'))
-    );
+        this.setProperties({
+            phase: 'light',
+            currentTrial: null
+        });
+
+        this.send('setTimeEvent', 'lightScreenStarted', {
+            imageUrl: lightUrl,
+            duration: this.get('lightDarkDuration')
+        });
+
+        this.set(
+            'interTrialTimer',
+            run.later(this, () => {
+                this.showDarkScreen();
+            }, this.get('lightDarkDuration'))
+        );
+    }).catch(error => {
+        console.error('Failed to preload startup images:', error);
+
+        // Continue even if preloading fails.
+        this.set('phase', 'light');
+
+        this.set(
+            'interTrialTimer',
+            run.later(this, () => {
+                this.showDarkScreen();
+            }, this.get('lightDarkDuration'))
+        );
+    });
 },
 
 finishCalibration() {
