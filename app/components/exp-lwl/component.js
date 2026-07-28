@@ -383,7 +383,7 @@ blockOrder:
     attentionVideoIndex: 0,
     calibrationStep: 0,
     currentAttentionVideo: null,
-    phase: 'intertrial'
+    phase: 'loading'
 });
 
 this.send('setTimeEvent', 'experimentGenerated', {
