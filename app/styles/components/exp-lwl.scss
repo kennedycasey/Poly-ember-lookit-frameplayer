@@ -19,34 +19,30 @@
         background: #BFBFBF;
     }
 
-    /*
-     * Light/dark startup screens.
-     * These are the only new display rules.
-     */
     .exp-lwl__full-screen-image {
-        position: fixed;
-        inset: 0;
+        position: fixed !important;
+        inset: 0 !important;
         z-index: 10;
-        width: 100vw;
-        height: 100vh;
+        width: 100vw !important;
+        height: 100vh !important;
         overflow: hidden;
         background: #BFBFBF;
     }
 
-.exp-lwl__full-screen-image img {
-    position: absolute;
-    inset: 0;
+    .exp-lwl__full-screen-image > img {
+        position: absolute !important;
+        inset: 0 !important;
+        display: block !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        object-fit: cover !important;
+    }
 
-    display: block;
-
-    width: 100%;
-    height: 100%;
-
-    max-width: none;
-    max-height: none;
-
-    object-fit: cover;
-}
+    // keep the rest of your existing rules here
 
     .exp-lwl__intro-screen {
         position: fixed;

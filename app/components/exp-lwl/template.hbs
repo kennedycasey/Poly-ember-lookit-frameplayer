@@ -1,126 +1,112 @@
-<div class="exp-lwl__screen">
-    <div id="recorder"></div>
+{{#if (eq phase "calibration")}}
 
-    {{#if paused}}
-        <div class="exp-lwl__message">
-            <h2>Paused</h2>
-
-            <p>
-                Press {{pauseKeyDescription}} or select Continue when you are
-                ready.
-            </p>
-
-            <button
-                type="button"
-                class="btn btn-primary"
-                {{action "togglePause"}}
-            >
-                Continue
-            </button>
-        </div>
-    {{else}}
-        {{#if (eq phase "calibration")}}
-            <div class="exp-lwl__stimuli">
-                <div class="exp-lwl__image-cell">
-                    {{#if calibrationOnLeft}}
-                        <img
-                            class="exp-lwl__image exp-lwl__calibration-image"
-                            src={{fixationImageUrl}}
-                            alt=""
-                        >
-                    {{/if}}
-                </div>
-
-                <div class="exp-lwl__image-cell">
-                    {{#if calibrationOnRight}}
-                        <img
-                            class="exp-lwl__image exp-lwl__calibration-image"
-                            src={{fixationImageUrl}}
-                            alt=""
-                        >
-                    {{/if}}
-                </div>
-            </div>
-
-        {{else if (eq phase "light")}}
-            <div class="exp-lwl__message">
+    <div class="exp-lwl__stimulus-container">
+        <div class="exp-lwl__stimulus-side">
+            {{#if calibrationOnLeft}}
                 <img
-                    class="exp-lwl__fixation-image"
-                    src={{lightImageUrl}}
+                    class="exp-lwl__image"
+                    src={{fixationImageUrl}}
                     alt=""
                 >
-            </div>
+            {{/if}}
+        </div>
 
-        {{else if (eq phase "dark")}}
-            <div class="exp-lwl__message">
+        <div class="exp-lwl__stimulus-side">
+            {{#if calibrationOnRight}}
                 <img
-                    class="exp-lwl__fixation-image"
+                    class="exp-lwl__image"
+                    src={{fixationImageUrl}}
+                    alt=""
+                >
+            {{/if}}
+        </div>
+    </div>
+
+{{else}}
+
+    {{#if (eq phase "light")}}
+
+        <div class="exp-lwl__full-screen-image">
+            <img
+                class="exp-lwl__startup-image"
+                src={{lightImageUrl}}
+                alt=""
+            >
+        </div>
+
+    {{else}}
+
+        {{#if (eq phase "dark")}}
+
+            <div class="exp-lwl__full-screen-image">
+                <img
+                    class="exp-lwl__startup-image"
                     src={{darkImageUrl}}
                     alt=""
                 >
             </div>
 
-        {{else if (eq phase "intro")}}
-            <div class="exp-lwl__message">
-                <img
-                    class="exp-lwl__fixation-image"
-                    src={{fixationImageUrl}}
-                    alt=""
-                >
-
-                <button
-                    type="button"
-                    class="btn btn-primary"
-                    {{action "startTrials"}}
-                >
-                    Start trials
-                </button>
-            </div>
-
-        {{else if (eq phase "stimulus")}}
-            <div class="exp-lwl__stimuli">
-                <div class="exp-lwl__image-cell">
-                    <img
-                        class="exp-lwl__image"
-                        src={{leftImageUrl}}
-                        alt=""
-                    >
-                </div>
-
-                <div class="exp-lwl__image-cell">
-                    <img
-                        class="exp-lwl__image"
-                        src={{rightImageUrl}}
-                        alt=""
-                    >
-                </div>
-            </div>
-
-        {{else if (eq phase "intertrial")}}
-            <div class="exp-lwl__message">
-                <img
-                    class="exp-lwl__fixation-image"
-                    src={{fixationImageUrl}}
-                    alt=""
-                >
-            </div>
-
-        {{else if (eq phase "attention")}}
-            <div class="exp-lwl__attention">
-                <video
-                    class="exp-lwl__attention-video"
-                    src={{attentionVideoUrl}}
-                    autoplay
-                    playsinline
-                    onended={{action "attentionEnded"}}
-                    onerror={{action "attentionEnded"}}
-                ></video>
-            </div>
-
         {{else}}
-            <div class="exp-lwl__message">
-                <p>Please wait…</p>
-            </div>
+
+            {{#if (eq phase "intro")}}
+
+                <div class="exp-lwl__intro-screen"></div>
+
+            {{else}}
+
+                {{#if (eq phase "stimulus")}}
+
+                    <div class="exp-lwl__stimulus-container">
+                        <div class="exp-lwl__stimulus-side">
+                            <img
+                                class="exp-lwl__image"
+                                src={{leftImageUrl}}
+                                alt=""
+                            >
+                        </div>
+
+                        <div class="exp-lwl__stimulus-side">
+                            <img
+                                class="exp-lwl__image"
+                                src={{rightImageUrl}}
+                                alt=""
+                            >
+                        </div>
+                    </div>
+
+                {{else}}
+
+                    {{#if (eq phase "intertrial")}}
+
+                        <div class="exp-lwl__fixation">
+                            <img
+                                src={{fixationImageUrl}}
+                                alt=""
+                            >
+                        </div>
+
+                    {{else}}
+
+                        {{#if (eq phase "attention")}}
+
+                            <video
+                                class="exp-lwl__attention-video"
+                                src={{attentionVideoUrl}}
+                                autoplay
+                                playsinline
+                                onended={{action "attentionEnded"}}
+                            ></video>
+
+                        {{/if}}
+
+                    {{/if}}
+
+                {{/if}}
+
+            {{/if}}
+
         {{/if}}
+
     {{/if}}
-</div>
+
+{{/if}}
