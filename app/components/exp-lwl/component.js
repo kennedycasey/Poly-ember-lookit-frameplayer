@@ -383,7 +383,15 @@ endAttentionGetter() {
         phase: 'intertrial'
     });
 
-    this.startCurrentTrial();
+    // Fixation appears and ITI audio begins together.
+    this.playITIAudio();
+
+    this.set(
+        'interTrialTimer',
+        run.later(this, () => {
+            this.startCurrentTrial();
+        }, this.get('interTrialInterval'))
+    );
 },
 
     startCurrentTrial() {
@@ -410,8 +418,6 @@ endAttentionGetter() {
         this.get('imageBaseUrl'),
         trial.rightImage
     );
-
-    this.playITIAudio();
 
  Promise.all([
     this.preloadImage(leftUrl),
@@ -572,21 +578,24 @@ playITIAudio() {
         phase: 'intertrial'
     });
 
-    if (this.shouldShowAttentionGetter(nextIndex)) {
-        this.set(
-            'interTrialTimer',
-            run.later(this, () => {
-                this.startAttentionGetter();
-            }, this.get('interTrialInterval'))
-        );
-    } else {
-        this.set(
-            'interTrialTimer',
-            run.later(this, () => {
-                this.startCurrentTrial();
-            }, this.get('interTrialInterval'))
-        );
-    }
+if (this.shouldShowAttentionGetter(nextIndex)) {
+    this.set(
+        'interTrialTimer',
+        run.later(this, () => {
+            this.startAttentionGetter();
+        }, this.get('interTrialInterval'))
+    );
+} else {
+    // Fixation is now visible, so start ITI audio immediately.
+    this.playITIAudio();
+
+    this.set(
+        'interTrialTimer',
+        run.later(this, () => {
+            this.startCurrentTrial();
+        }, this.get('interTrialInterval'))
+    );
+}
 },
 
     finishExperiment() {
