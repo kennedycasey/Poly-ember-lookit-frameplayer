@@ -238,12 +238,14 @@ onRecordingStarted() {
         this.startCurrentTrial();
     },
 
-    preloadImage(url) {
+preloadImage(url) {
     return new Promise((resolve, reject) => {
         const img = new Image();
 
-        img.onload = resolve;
-        img.onerror = reject;
+        img.onload = () => resolve(url);
+        img.onerror = () => {
+            reject(new Error(`Failed to load image: ${url}`));
+        };
 
         img.src = url;
     });
@@ -274,43 +276,124 @@ onRecordingStarted() {
         trial.rightImage
     );
 
-    Promise.all([
-        this.preloadImage(leftUrl),
-        this.preloadImage(rightUrl)
-    ]).then(() => {
+ Promise.all([
+    this.preloadImage(leftUrl),
+    this.preloadImage(rightUrl)
+]).then(() => {
+    if (
+        this.get('isDestroyed') ||
+        this.get('paused') ||
+        this.get('finishing')
+    ) {
+        return;
+    }
 
-        if (this.get('isDestroyed')) {
-            return;
+    this.setProperties({
+        currentTrial: trial,
+        phase: 'stimulus'
+    });
+
+    this.send(
+        'setTimeEvent',
+        'trialStarted',
+        this.trialEventData(trial)
+    );
+
+    this.set(
+        'audioTimer',
+        run.later(this, () => {
+            this.playTrialAudio();
+        }, this.get('audioDelay'))
+    );
+
+    this.set(
+        'trialTimer',
+        run.later(this, () => {
+            this.endCurrentTrial();
+        }, this.get('imageDuration'))
+    );
+}).catch(error => {
+    console.error('Failed to preload trial images:', {
+        leftUrl,
+        rightUrl,
+        error
+    });
+
+    if (this.get('isDestroyed')) {
+        return;
+    }
+
+    this.send('setTimeEvent', 'imageError', {
+        ...this.trialEventData(trial),
+        leftUrl,
+        rightUrl,
+        errorMessage: error.message || 'Image preload failed'
+    });
+
+    const nextIndex = this.get('currentTrialIndex') + 1;
+
+    this.setProperties({
+        currentTrialIndex: nextIndex,
+        currentTrial: null,
+        phase: 'intertrial'
+    });
+
+    this.set(
+        'interTrialTimer',
+        run.later(this, () => {
+            this.startCurrentTrial();
+        }, this.get('interTrialInterval'))
+    );
+});
+},
+
+playTrialAudio() {
+    if (this.get('paused') || !this.get('currentTrial')) {
+        return;
+    }
+
+    const trial = this.get('currentTrial');
+    const audioUrl = this.joinUrl(
+        this.get('audioBaseUrl'),
+        trial.audio
+    );
+
+    const audio = new Audio(audioUrl);
+
+    this.set('audioElement', audio);
+
+    audio.addEventListener('play', () => {
+        if (!this.get('isDestroyed')) {
+            this.send('setTimeEvent', 'audioStarted', {
+                ...this.trialEventData(trial),
+                audioUrl
+            });
         }
+    }, { once: true });
 
-        this.setProperties({
-            currentTrial: trial,
-            phase: 'stimulus'
+    audio.addEventListener('ended', () => {
+        if (!this.get('isDestroyed')) {
+            this.send(
+                'setTimeEvent',
+                'audioEnded',
+                this.trialEventData(trial)
+            );
+        }
+    }, { once: true });
+
+    audio.play().catch(error => {
+        console.error('Failed to play trial audio:', {
+            audioUrl,
+            error
         });
 
-        this.send(
-            'setTimeEvent',
-            'trialStarted',
-            this.trialEventData(trial)
-        );
-
-        this.set(
-            'audioTimer',
-            run.later(
-                this,
-                this.playTrialAudio,
-                this.get('audioDelay')
-            )
-        );
-
-        this.set(
-            'trialTimer',
-            run.later(
-                this,
-                this.endCurrentTrial,
-                this.get('imageDuration')
-            )
-        );
+        if (!this.get('isDestroyed')) {
+            this.send('setTimeEvent', 'audioError', {
+                ...this.trialEventData(trial),
+                audioUrl,
+                errorMessage: error.message || 'Audio playback failed'
+            });
+        }
     });
 },
 
@@ -336,14 +419,12 @@ onRecordingStarted() {
             phase: 'intertrial'
         });
 
-        this.set(
-            'interTrialTimer',
-            run.later(
-                this,
-                this.startCurrentTrial,
-                this.get('interTrialInterval')
-            )
-        );
+this.set(
+    'interTrialTimer',
+    run.later(this, () => {
+        this.startCurrentTrial();
+    }, this.get('interTrialInterval'))
+);
     },
 
     finishExperiment() {
