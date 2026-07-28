@@ -349,41 +349,40 @@ export function generateChallengeBlock(options) {
         );
     }
 
-    WORDS.forEach(function(word) {
-        stimuli[word].conventional.forEach(
-            function(conventionalImage, imageIndex) {
-                const conventionalIsTarget =
-                    challengeTarget ===
-                    'conventional';
+WORDS.forEach(function(word) {
+    const conventionalImage =
+        stimuli[word].conventional[0];
 
-                trials.push({
-                    condition: 'challenge',
-                    word: word,
-                    audio: stimuli[word].audio,
-                    targetImage:
-                        conventionalIsTarget
-                            ? conventionalImage
-                            : stimuli[word].extension,
-                    targetType:
-                        conventionalIsTarget
-                            ? 'conventional'
-                            : 'extension',
-                    foilWord: word,
-                    foilImage:
-                        conventionalIsTarget
-                            ? stimuli[word].extension
-                            : conventionalImage,
-                    foilType:
-                        conventionalIsTarget
-                            ? 'extension'
-                            : 'conventional',
-                    conventionalImageNumber:
-                        imageIndex + 1,
-                    repetition: 1
-                });
-            }
-        );
-    });
+    const conventionalIsTarget =
+        challengeTarget === 'conventional';
+
+    for (let repetition = 1; repetition <= 2; repetition++) {
+        trials.push({
+            condition: 'challenge',
+            word: word,
+            audio: stimuli[word].audio,
+            targetImage:
+                conventionalIsTarget
+                    ? conventionalImage
+                    : stimuli[word].extension,
+            targetType:
+                conventionalIsTarget
+                    ? 'conventional'
+                    : 'extension',
+            foilWord: word,
+            foilImage:
+                conventionalIsTarget
+                    ? stimuli[word].extension
+                    : conventionalImage,
+            foilType:
+                conventionalIsTarget
+                    ? 'extension'
+                    : 'conventional',
+            conventionalImageNumber: 1,
+            repetition
+        });
+    }
+});
 
     return assignBalancedSides(
         shuffle(trials, random),
