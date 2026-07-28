@@ -34,9 +34,23 @@ audioBaseUrl: {
     default:
         'https://raw.githubusercontent.com/kennedycasey/Poly-Lookit/master/mp3'
 },
+itiAudioUrl: computed(
+    'itiAudio',
+    'audioBaseUrl',
+    function() {
+        return this.joinUrl(
+            this.get('audioBaseUrl'),
+            this.get('itiAudio')
+        );
+    }
+),
 fixationImage: {
     type: 'string',
     default: 'fixation.gif'
+},
+itiAudio: {
+    type: 'string',
+    default: 'ITI.mp3'
 },
         imageDuration: {
             type: 'number',
@@ -276,6 +290,8 @@ preloadImage(url) {
         trial.rightImage
     );
 
+    this.playITIAudio();
+
  Promise.all([
     this.preloadImage(leftUrl),
     this.preloadImage(rightUrl)
@@ -396,7 +412,17 @@ playTrialAudio() {
         }
     });
 },
+playITIAudio() {
+    if (this.get('paused')) {
+        return;
+    }
 
+    const audio = new Audio(this.get('itiAudioUrl'));
+
+    audio.play().catch(error => {
+        console.error('Failed to play ITI audio:', error);
+    });
+},
     endCurrentTrial() {
         const trial = this.get('currentTrial');
 
