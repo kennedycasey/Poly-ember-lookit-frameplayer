@@ -35,6 +35,11 @@ audioBaseUrl: {
         'https://raw.githubusercontent.com/kennedycasey/Poly-Lookit/master/mp3'
 },
 
+introAudio: {
+    type: 'string',
+    default: 'intro.mp3'
+},
+
 attentionVideoBaseUrl: {
     type: 'string',
     default:
@@ -198,6 +203,17 @@ itiAudio: {
         return this.joinUrl(
             this.get('audioBaseUrl'),
             this.get('itiAudio')
+        );
+    }
+),
+
+introAudioUrl: computed(
+    'introAudio',
+    'audioBaseUrl',
+    function() {
+        return this.joinUrl(
+            this.get('audioBaseUrl'),
+            this.get('introAudio')
         );
     }
 ),
@@ -526,18 +542,28 @@ finishCalibration() {
         'setTimeEvent',
         'calibrationEnded',
         {
-            repeats: this.get('calibrationRepeats')
+            repeats:
+                this.get('calibrationRepeats')
         }
     );
 
     this.setProperties({
-        phase: 'intertrial',
-        calibrationStep: 0
+        phase: 'intro',
+        calibrationStep: 0,
+        currentTrial: null
     });
 
-    this.startCurrentTrial();
-},
+    this.send(
+        'setTimeEvent',
+        'introScreenShown',
+        {}
+    );
 
+    run.next(
+        this,
+        this.playIntroAudio
+    );
+},
     startCurrentTrial() {
     if (this.get('paused') || this.get('finishing')) {
         return;
@@ -679,6 +705,70 @@ playTrialAudio() {
                 audioUrl,
                 errorMessage: error.message || 'Audio playback failed'
             });
+        }
+    });
+},
+playIntroAudio() {
+    if (
+        this.get('paused') ||
+        this.get('finishing')
+    ) {
+        return;
+    }
+
+    this.stopAudio();
+
+    const audioUrl =
+        this.get('introAudioUrl');
+
+    const audio = new Audio(audioUrl);
+
+    this.set('audioElement', audio);
+
+    this.send(
+        'setTimeEvent',
+        'introAudioStarted',
+        {
+            audioUrl: audioUrl
+        }
+    );
+
+    audio.addEventListener(
+        'ended',
+        () => {
+            if (!this.get('isDestroyed')) {
+                this.send(
+                    'setTimeEvent',
+                    'introAudioEnded',
+                    {
+                        audioUrl: audioUrl
+                    }
+                );
+            }
+        },
+        { once: true }
+    );
+
+    audio.play().catch(error => {
+        console.error(
+            'Failed to play intro audio:',
+            {
+                audioUrl,
+                error
+            }
+        );
+
+        if (!this.get('isDestroyed')) {
+            this.send(
+                'setTimeEvent',
+                'introAudioError',
+                {
+                    audioUrl: audioUrl,
+                    errorMessage:
+                        error.message ||
+                        'Intro audio playback failed'
+                }
+            );
         }
     });
 },
@@ -920,6 +1010,27 @@ actions: {
 
     attentionEnded() {
         this.endAttentionGetter();
+    },
+
+    startTrials() {
+        if (
+            this.get('phase') !== 'intro' ||
+            this.get('finishing')
+        ) {
+            return;
+        }
+
+        this.stopAudio();
+
+        this.send(
+            'setTimeEvent',
+            'introScreenCompleted',
+            {}
+        );
+
+        this.set('phase', 'intertrial');
+
+        this.startCurrentTrial();
     }
 }
 });

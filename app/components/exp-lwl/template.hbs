@@ -42,6 +42,23 @@
                 </div>
             </div>
 
+        {{else if (eq phase "intro")}}
+            <div class="exp-lwl__message">
+                <img
+                    class="exp-lwl__fixation-image"
+                    src={{fixationImageUrl}}
+                    alt=""
+                >
+
+                <button
+                    type="button"
+                    class="btn btn-primary"
+                    {{action "startTrials"}}
+                >
+                    Start trials
+                </button>
+            </div>
+
         {{else if (eq phase "stimulus")}}
             <div class="exp-lwl__stimuli">
                 <div class="exp-lwl__image-cell">
@@ -80,6 +97,11 @@
                     onended={{action "attentionEnded"}}
                     onerror={{action "attentionEnded"}}
                 ></video>
+            </div>
+
+        {{else if (eq phase "finished")}}
+            <div class="exp-lwl__message">
+                <p>Please wait…</p>
             </div>
 
         {{else}}
