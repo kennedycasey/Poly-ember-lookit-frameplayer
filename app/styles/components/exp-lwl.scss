@@ -19,34 +19,33 @@
         background: #c1c1c1;
     }
 
- .exp-lwl__stimuli {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;   // was space-around
-    gap: 10vw;                 // add a fixed gap
-    width: 100%;
-    height: 100%;
-    padding: 4vh 3vw;
-    box-sizing: border-box;
-}
+    .exp-lwl__stimuli {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10vw;
+        width: 100%;
+        height: 100%;
+        padding: 4vh 3vw;
+        box-sizing: border-box;
+    }
 
-.exp-lwl__image-cell {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36vw;               // was 44vw
-    height: 82vh;
-    overflow: hidden;
-}
+    .exp-lwl__image-cell {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36vw;
+        height: 82vh;
+        overflow: hidden;
+    }
 
-.exp-lwl__image {
-    display: block;
-    max-width: 85%;            // was 100%
-    max-height: 85%;           // was 100%
-    object-fit: contain;
-}ect-fit: contain;
+    .exp-lwl__image {
+        display: block;
+        max-width: 85%;
+        max-height: 85%;
+        object-fit: contain;
     }
 
     .exp-lwl__message {
@@ -62,11 +61,31 @@
         background: #c1c1c1;
     }
 
-.exp-lwl__fixation-image {
-    width: 120px;
-    height: 120px;
-    object-fit: contain;
-}
+    .exp-lwl__fixation-image {
+        width: 120px;
+        height: 120px;
+        object-fit: contain;
+    }
+
+    .exp-lwl__attention {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        background: #c1c1c1;
+    }
+
+    .exp-lwl__attention-video {
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: 70vw;
+        max-height: 70vh;
+        object-fit: contain;
+    }
 
     .exp-lwl-diagnostic {
         position: fixed;

@@ -35,6 +35,26 @@ audioBaseUrl: {
         'https://raw.githubusercontent.com/kennedycasey/Poly-Lookit/master/mp3'
 },
 
+attentionVideoBaseUrl: {
+    type: 'string',
+    default:
+        'https://raw.githubusercontent.com/kennedycasey/Poly-Lookit/master/mp4'
+},
+
+attentionVideos: {
+    type: 'array',
+    default: [
+        'AG1.mp4',
+        'AG2.mp4'
+    ]
+},
+
+attentionEveryNTrials: {
+    type: 'number',
+    minimum: 1,
+    default: 6
+},
+
 fixationImage: {
     type: 'string',
     default: 'fixation.gif'
@@ -115,6 +135,8 @@ itiAudio: {
     currentTrial: null,
     currentTrialIndex: 0,
     completedTrialCount: 0,
+    attentionVideoIndex: 0,
+    currentAttentionVideo: null,    
 
     participantSeed: null,
     counterbalanceVersion: null,
@@ -161,6 +183,23 @@ itiAudio: {
         return this.joinUrl(
             this.get('audioBaseUrl'),
             this.get('itiAudio')
+        );
+    }
+),
+attentionVideoUrl: computed(
+    'currentAttentionVideo',
+    'attentionVideoBaseUrl',
+    function() {
+        const filename =
+            this.get('currentAttentionVideo');
+
+        if (!filename) {
+            return '';
+        }
+
+        return this.joinUrl(
+            this.get('attentionVideoBaseUrl'),
+            filename
         );
     }
 ),
@@ -229,18 +268,20 @@ onRecordingStarted() {
             reuseYokingAcrossBlocks: this.get('reuseYokingAcrossBlocks')
         });
 
-        this.setProperties({
-            experimentStarted: true,
-            trials: generated.trials,
-            generatedTrials: generated.trials,
-            participantSeed: generated.seed,
-            counterbalanceVersion: generated.counterbalanceVersion,
-            blockOrder: generated.blockOrder,
-            yoking: generated.yoking,
-            currentTrialIndex: 0,
-            completedTrialCount: 0,
-            phase: 'intertrial'
-        });
+this.setProperties({
+    experimentStarted: true,
+    trials: generated.trials,
+    generatedTrials: generated.trials,
+    participantSeed: generated.seed,
+    counterbalanceVersion: generated.counterbalanceVersion,
+    blockOrder: generated.blockOrder,
+    yoking: generated.yoking,
+    currentTrialIndex: 0,
+    completedTrialCount: 0,
+    attentionVideoIndex: 0,
+    currentAttentionVideo: null,
+    phase: 'intertrial'
+});
 
         this.send('setTimeEvent', 'experimentGenerated', {
             participantId,
@@ -265,6 +306,84 @@ preloadImage(url) {
 
         img.src = url;
     });
+},
+
+shouldShowAttentionGetter(completedCount) {
+    const everyN =
+        this.get('attentionEveryNTrials');
+
+    const totalTrials =
+        (this.get('trials') || []).length;
+
+    return (
+        completedCount > 0 &&
+        completedCount < totalTrials &&
+        completedCount % everyN === 0
+    );
+},
+
+startAttentionGetter() {
+    const videos =
+        this.get('attentionVideos') || [];
+
+    if (videos.length === 0) {
+        this.startCurrentTrial();
+        return;
+    }
+
+    const videoIndex =
+        this.get('attentionVideoIndex') %
+        videos.length;
+
+    const filename = videos[videoIndex];
+
+    this.setProperties({
+        phase: 'attention',
+        currentTrial: null,
+        currentAttentionVideo: filename,
+        attentionVideoIndex: videoIndex + 1
+    });
+
+    this.send(
+        'setTimeEvent',
+        'attentionGetterStarted',
+        {
+            completedTrialCount:
+                this.get('completedTrialCount'),
+            attentionVideo: filename,
+            attentionVideoUrl:
+                this.get('attentionVideoUrl')
+        }
+    );
+},
+
+endAttentionGetter() {
+    if (
+        this.get('paused') ||
+        this.get('finishing')
+    ) {
+        return;
+    }
+
+    const filename =
+        this.get('currentAttentionVideo');
+
+    this.send(
+        'setTimeEvent',
+        'attentionGetterEnded',
+        {
+            completedTrialCount:
+                this.get('completedTrialCount'),
+            attentionVideo: filename
+        }
+    );
+
+    this.setProperties({
+        currentAttentionVideo: null,
+        phase: 'intertrial'
+    });
+
+    this.startCurrentTrial();
 },
 
     startCurrentTrial() {
@@ -349,19 +468,18 @@ preloadImage(url) {
     });
 
     const nextIndex = this.get('currentTrialIndex') + 1;
-
-    this.setProperties({
-        currentTrialIndex: nextIndex,
-        currentTrial: null,
-        phase: 'intertrial'
-    });
-
-    this.set(
-        'interTrialTimer',
-        run.later(this, () => {
-            this.startCurrentTrial();
-        }, this.get('interTrialInterval'))
-    );
+this.setProperties({
+    currentTrialIndex: nextIndex,
+    completedTrialCount: nextIndex,
+    currentTrial: null,
+    phase: 'intertrial'
+});
+this.set(
+    'interTrialTimer',
+    run.later(this, () => {
+        this.startCurrentTrial();
+    }, this.get('interTrialInterval'))
+);
 });
 },
 
@@ -428,34 +546,48 @@ playITIAudio() {
     });
 },
     endCurrentTrial() {
-        const trial = this.get('currentTrial');
+    const trial = this.get('currentTrial');
 
-        if (!trial || this.get('paused') || this.get('finishing')) {
-            return;
-        }
+    if (!trial || this.get('paused') || this.get('finishing')) {
+        return;
+    }
 
-        this.stopAudio();
-        this.cancelTimer('audioTimer');
-        this.cancelTimer('trialTimer');
+    this.stopAudio();
+    this.cancelTimer('audioTimer');
+    this.cancelTimer('trialTimer');
 
-        this.send('setTimeEvent', 'trialEnded', this.trialEventData(trial));
+    this.send(
+        'setTimeEvent',
+        'trialEnded',
+        this.trialEventData(trial)
+    );
 
-        const nextIndex = this.get('currentTrialIndex') + 1;
+    const nextIndex =
+        this.get('currentTrialIndex') + 1;
 
-        this.setProperties({
-            currentTrialIndex: nextIndex,
-            completedTrialCount: nextIndex,
-            currentTrial: null,
-            phase: 'intertrial'
-        });
+    this.setProperties({
+        currentTrialIndex: nextIndex,
+        completedTrialCount: nextIndex,
+        currentTrial: null,
+        phase: 'intertrial'
+    });
 
-this.set(
-    'interTrialTimer',
-    run.later(this, () => {
-        this.startCurrentTrial();
-    }, this.get('interTrialInterval'))
-);
-    },
+    if (this.shouldShowAttentionGetter(nextIndex)) {
+        this.set(
+            'interTrialTimer',
+            run.later(this, () => {
+                this.startAttentionGetter();
+            }, this.get('interTrialInterval'))
+        );
+    } else {
+        this.set(
+            'interTrialTimer',
+            run.later(this, () => {
+                this.startCurrentTrial();
+            }, this.get('interTrialInterval'))
+        );
+    }
+},
 
     finishExperiment() {
         if (this.get('finishing')) {
@@ -620,14 +752,18 @@ this.set(
         this.cancelTimer('interTrialTimer');
     },
 
-    actions: {
-        togglePause() {
-            if (this.get('paused')) {
-                this.resumeExperiment();
-            } else {
-                this.pauseExperiment();
-            }
+actions: {
+    togglePause() {
+        if (this.get('paused')) {
+            this.resumeExperiment();
+        } else {
+            this.pauseExperiment();
         }
+    },
+
+    attentionEnded() {
+        this.endAttentionGetter();
     }
+}
 });
 

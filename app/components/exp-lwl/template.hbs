@@ -4,6 +4,7 @@
     {{#if paused}}
         <div class="exp-lwl__message">
             <h2>Paused</h2>
+
             <p>
                 Press {{pauseKeyDescription}} or select Continue when you are
                 ready.
@@ -36,17 +37,28 @@
                     >
                 </div>
             </div>
+        {{else if (eq phase "intertrial")}}
+            <div class="exp-lwl__message">
+                <img
+                    class="exp-lwl__fixation-image"
+                    src={{fixationImageUrl}}
+                    alt=""
+                >
+            </div>
+        {{else if (eq phase "attention")}}
+            <div class="exp-lwl__attention">
+                <video
+                    class="exp-lwl__attention-video"
+                    src={{attentionVideoUrl}}
+                    autoplay
+                    playsinline
+                    onended={{action "attentionEnded"}}
+                    onerror={{action "attentionEnded"}}
+                ></video>
+            </div>
         {{else}}
             <div class="exp-lwl__message">
-{{#if (eq phase "intertrial")}}
-    <img
-        class="exp-lwl__fixation-image"
-        src={{fixationImageUrl}}
-        alt=""
-    >
-{{else}}
-                    <p>Please wait…</p>
-                {{/if}}
+                <p>Please wait…</p>
             </div>
         {{/if}}
     {{/if}}
