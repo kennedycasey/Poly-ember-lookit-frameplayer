@@ -405,12 +405,11 @@ this.send('setTimeEvent', 'experimentGenerated', {
         generated.trials.length
 });
 
-        if (this.get('calibrationEnabled')) {
+if (this.get('calibrationEnabled')) {
     this.startCalibration();
 } else {
-    this.startCurrentTrial();
-}
-    },
+    this.startLightDarkSequence();
+}},
 
 preloadImage(url) {
     return new Promise((resolve, reject) => {
@@ -600,15 +599,33 @@ advanceCalibration() {
 
     this.scheduleNextCalibrationStep();
 },
+startLightDarkSequence() {
+    if (
+        this.get('paused') ||
+        this.get('finishing') ||
+        this.get('isDestroyed')
+    ) {
+        return;
+    }
 
-finishCalibration() {
     this.cancelTimer('interTrialTimer');
+    this.stopAudio();
 
-    this.send('setTimeEvent', 'calibrationEnded', {
-        repeats: this.get('calibrationRepeats')
+    this.setProperties({
+        phase: 'light',
+        currentTrial: null
     });
 
-    this.set('phase', 'light');
+    this.send(
+        'setTimeEvent',
+        'lightScreenStarted',
+        {
+            imageUrl:
+                this.get('lightImageUrl'),
+            duration:
+                this.get('lightDarkDuration')
+        }
+    );
 
     this.set(
         'interTrialTimer',
@@ -617,8 +634,45 @@ finishCalibration() {
         }, this.get('lightDarkDuration'))
     );
 },
+
+finishCalibration() {
+    this.cancelTimer('interTrialTimer');
+
+    this.send(
+        'setTimeEvent',
+        'calibrationEnded',
+        {
+            repeats:
+                this.get('calibrationRepeats')
+        }
+    );
+
+    this.startLightDarkSequence();
+},
 showDarkScreen() {
-    this.set('phase', 'dark');
+    if (
+        this.get('paused') ||
+        this.get('finishing') ||
+        this.get('isDestroyed')
+    ) {
+        return;
+    }
+
+    this.setProperties({
+        phase: 'dark',
+        currentTrial: null
+    });
+
+    this.send(
+        'setTimeEvent',
+        'darkScreenStarted',
+        {
+            imageUrl:
+                this.get('darkImageUrl'),
+            duration:
+                this.get('lightDarkDuration')
+        }
+    );
 
     this.set(
         'interTrialTimer',
@@ -629,7 +683,18 @@ showDarkScreen() {
 },
 
 showIntroScreen() {
-    this.set('phase', 'intro');
+    if (
+        this.get('paused') ||
+        this.get('finishing') ||
+        this.get('isDestroyed')
+    ) {
+        return;
+    }
+
+    this.setProperties({
+        phase: 'intro',
+        currentTrial: null
+    });
 
     run.next(this, this.playIntroAudio);
 },
@@ -782,7 +847,8 @@ playTrialAudio() {
 playIntroAudio() {
     if (
         this.get('paused') ||
-        this.get('finishing')
+        this.get('finishing') ||
+        this.get('isDestroyed')
     ) {
         return;
     }
@@ -792,25 +858,41 @@ playIntroAudio() {
     const audioUrl =
         this.get('introAudioUrl');
 
-    const audio = new Audio(audioUrl);
+    const audio =
+        new Audio(audioUrl);
 
     this.set('audioElement', audio);
 
-    this.send(
-        'setTimeEvent',
-        'introAudioStarted',
-        {
-            audioUrl: audioUrl
+    const beginTrials = () => {
+        if (
+            this.get('isDestroyed') ||
+            this.get('paused') ||
+            this.get('finishing')
+        ) {
+            return;
         }
-    );
+
+        this.set('audioElement', null);
+
+        this.send(
+            'setTimeEvent',
+            'introAudioEnded',
+            {
+                audioUrl: audioUrl
+            }
+        );
+
+        this.set('phase', 'intertrial');
+        this.startCurrentTrial();
+    };
 
     audio.addEventListener(
-        'ended',
+        'play',
         () => {
             if (!this.get('isDestroyed')) {
                 this.send(
                     'setTimeEvent',
-                    'introAudioEnded',
+                    'introAudioStarted',
                     {
                         audioUrl: audioUrl
                     }
@@ -820,12 +902,18 @@ playIntroAudio() {
         { once: true }
     );
 
+    audio.addEventListener(
+        'ended',
+        beginTrials,
+        { once: true }
+    );
+
     audio.play().catch(error => {
         console.error(
             'Failed to play intro audio:',
             {
-                audioUrl,
-                error
+                audioUrl: audioUrl,
+                error: error
             }
         );
 
@@ -841,6 +929,14 @@ playIntroAudio() {
                 }
             );
         }
+
+        /*
+         * Continue to Trial 1 even if the
+         * intro audio cannot be played.
+         */
+        this.set('audioElement', null);
+        this.set('phase', 'intertrial');
+        this.startCurrentTrial();
     });
 },
 playITIAudio() {
@@ -1098,28 +1194,6 @@ actions: {
 
     attentionEnded() {
         this.endAttentionGetter();
-    },
-
-    startTrials() {
-        if (
-            this.get('phase') !== 'intro' ||
-            this.get('finishing')
-        ) {
-            return;
-        }
-
-        this.stopAudio();
-
-        this.send(
-            'setTimeEvent',
-            'introScreenCompleted',
-            {}
-        );
-
-        this.set('phase', 'intertrial');
-
-        this.startCurrentTrial();
     }
 }
 });
-

@@ -19,6 +19,29 @@
         background: #BFBFBF;
     }
 
+    .exp-lwl__full-screen-image,
+.exp-lwl__intro-screen {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    overflow: hidden;
+}
+
+.exp-lwl__full-screen-image img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+}
+
     .exp-lwl__stimuli {
         position: absolute;
         inset: 0;
