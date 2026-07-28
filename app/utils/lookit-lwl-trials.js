@@ -216,40 +216,43 @@ function assignBalancedSides(trials, random) {
 }
 
 function shuffleWithoutAdjacentWords(trials, random) {
-    const remaining = trials.slice();
-    const ordered = [];
+    for (let attempt = 0; attempt < 100; attempt++) {
+        const remaining = shuffle(trials, random);
+        const ordered = [];
 
-    while (remaining.length > 0) {
-        const previousWord =
-            ordered.length > 0
-                ? ordered[ordered.length - 1].word
-                : null;
+        while (remaining.length > 0) {
+            const previousWord =
+                ordered.length > 0
+                    ? ordered[ordered.length - 1].word
+                    : null;
 
-        const validIndices = [];
+            const valid = remaining.filter(
+                trial => trial.word !== previousWord
+            );
 
-        remaining.forEach(function(trial, index) {
-            if (trial.word !== previousWord) {
-                validIndices.push(index);
+            if (valid.length === 0) {
+                break;
             }
-        });
 
-        if (validIndices.length === 0) {
-            throw new Error(
-                'Could not arrange trials without adjacent repeated words.'
+            const chosen =
+                valid[Math.floor(random() * valid.length)];
+
+            ordered.push(chosen);
+
+            remaining.splice(
+                remaining.indexOf(chosen),
+                1
             );
         }
 
-        const selectedIndex =
-            validIndices[
-                Math.floor(random() * validIndices.length)
-            ];
-
-        ordered.push(
-            remaining.splice(selectedIndex, 1)[0]
-        );
+        if (ordered.length === trials.length) {
+            return ordered;
+        }
     }
 
-    return ordered;
+    throw new Error(
+        'Could not arrange trials without adjacent repeated words.'
+    );
 }
 
 export function generateConventionalBlock(options) {
