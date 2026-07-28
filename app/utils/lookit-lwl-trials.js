@@ -215,6 +215,43 @@ function assignBalancedSides(trials, random) {
     return assignedTrials;
 }
 
+function shuffleWithoutAdjacentWords(trials, random) {
+    const remaining = trials.slice();
+    const ordered = [];
+
+    while (remaining.length > 0) {
+        const previousWord =
+            ordered.length > 0
+                ? ordered[ordered.length - 1].word
+                : null;
+
+        const validIndices = [];
+
+        remaining.forEach(function(trial, index) {
+            if (trial.word !== previousWord) {
+                validIndices.push(index);
+            }
+        });
+
+        if (validIndices.length === 0) {
+            throw new Error(
+                'Could not arrange trials without adjacent repeated words.'
+            );
+        }
+
+        const selectedIndex =
+            validIndices[
+                Math.floor(random() * validIndices.length)
+            ];
+
+        ordered.push(
+            remaining.splice(selectedIndex, 1)[0]
+        );
+    }
+
+    return ordered;
+}
+
 export function generateConventionalBlock(options) {
     let stimuli;
     let yoking;
@@ -268,7 +305,7 @@ export function generateConventionalBlock(options) {
     });
 
     return assignBalancedSides(
-        shuffle(trials, random),
+        shuffleWithoutAdjacentWords(trials, random),
         random
     );
 }
@@ -317,7 +354,7 @@ export function generateNovelExtensionBlock(options) {
     });
 
     return assignBalancedSides(
-        shuffle(trials, random),
+        shuffleWithoutAdjacentWords(trials, random),
         random
     );
 }
@@ -385,7 +422,7 @@ WORDS.forEach(function(word) {
 });
 
     return assignBalancedSides(
-        shuffle(trials, random),
+        shuffleWithoutAdjacentWords(trials, random),
         random
     );
 }
