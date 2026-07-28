@@ -19,7 +19,30 @@
             </button>
         </div>
     {{else}}
-        {{#if (eq phase "stimulus")}}
+        {{#if (eq phase "calibration")}}
+            <div class="exp-lwl__stimuli">
+                <div class="exp-lwl__image-cell">
+                    {{#if calibrationOnLeft}}
+                        <img
+                            class="exp-lwl__image exp-lwl__calibration-image"
+                            src={{fixationImageUrl}}
+                            alt=""
+                        >
+                    {{/if}}
+                </div>
+
+                <div class="exp-lwl__image-cell">
+                    {{#if calibrationOnRight}}
+                        <img
+                            class="exp-lwl__image exp-lwl__calibration-image"
+                            src={{fixationImageUrl}}
+                            alt=""
+                        >
+                    {{/if}}
+                </div>
+            </div>
+
+        {{else if (eq phase "stimulus")}}
             <div class="exp-lwl__stimuli">
                 <div class="exp-lwl__image-cell">
                     <img
@@ -37,6 +60,7 @@
                     >
                 </div>
             </div>
+
         {{else if (eq phase "intertrial")}}
             <div class="exp-lwl__message">
                 <img
@@ -45,6 +69,7 @@
                     alt=""
                 >
             </div>
+
         {{else if (eq phase "attention")}}
             <div class="exp-lwl__attention">
                 <video
@@ -56,6 +81,7 @@
                     onerror={{action "attentionEnded"}}
                 ></video>
             </div>
+
         {{else}}
             <div class="exp-lwl__message">
                 <p>Please wait…</p>

@@ -41,6 +41,21 @@ attentionVideoBaseUrl: {
         'https://raw.githubusercontent.com/kennedycasey/Poly-Lookit/master/mp4'
 },
 
+calibrationEnabled: {
+    type: 'boolean',
+    default: true
+},
+
+calibrationDuration: {
+    type: 'number',
+    default: 750
+},
+
+calibrationRepeats: {
+    type: 'number',
+    default: 2
+},
+
 attentionVideos: {
     type: 'array',
     default: [
@@ -186,6 +201,21 @@ itiAudio: {
         );
     }
 ),
+
+calibrationOnLeft: computed(
+    'calibrationStep',
+    function() {
+        return this.get('calibrationStep') % 2 === 0;
+    }
+),
+
+calibrationOnRight: computed(
+    'calibrationStep',
+    function() {
+        return this.get('calibrationStep') % 2 === 1;
+    }
+),
+
 attentionVideoUrl: computed(
     'currentAttentionVideo',
     'attentionVideoBaseUrl',
@@ -279,6 +309,7 @@ this.setProperties({
     currentTrialIndex: 0,
     completedTrialCount: 0,
     attentionVideoIndex: 0,
+    calibrationStep: 0,
     currentAttentionVideo: null,
     phase: 'intertrial'
 });
@@ -292,7 +323,11 @@ this.setProperties({
             trialCount: generated.trials.length
         });
 
-        this.startCurrentTrial();
+        if (this.get('calibrationEnabled')) {
+    this.startCalibration();
+} else {
+    this.startCurrentTrial();
+}
     },
 
 preloadImage(url) {
@@ -392,6 +427,115 @@ endAttentionGetter() {
             this.startCurrentTrial();
         }, this.get('interTrialInterval'))
     );
+},
+
+startCalibration() {
+    if (
+        this.get('paused') ||
+        this.get('finishing') ||
+        this.get('isDestroyed')
+    ) {
+        return;
+    }
+
+    this.stopAudio();
+    this.cancelTimer('interTrialTimer');
+
+    this.setProperties({
+        phase: 'calibration',
+        currentTrial: null,
+        calibrationStep: 0
+    });
+
+    this.send(
+        'setTimeEvent',
+        'calibrationStarted',
+        {
+            repeats: this.get('calibrationRepeats'),
+            duration: this.get('calibrationDuration')
+        }
+    );
+
+    this.send(
+        'setTimeEvent',
+        'calibrationPositionChanged',
+        {
+            step: 1,
+            position: 'left'
+        }
+    );
+
+    this.scheduleNextCalibrationStep();
+},
+
+scheduleNextCalibrationStep() {
+    this.set(
+        'interTrialTimer',
+        run.later(this, () => {
+            this.advanceCalibration();
+        }, this.get('calibrationDuration'))
+    );
+},
+
+advanceCalibration() {
+    if (
+        this.get('paused') ||
+        this.get('finishing') ||
+        this.get('isDestroyed')
+    ) {
+        return;
+    }
+
+    const currentStep =
+        this.get('calibrationStep');
+
+    const totalSteps =
+        Math.max(
+            1,
+            this.get('calibrationRepeats')
+        ) * 2;
+
+    const nextStep = currentStep + 1;
+
+    if (nextStep >= totalSteps) {
+        this.finishCalibration();
+        return;
+    }
+
+    this.set('calibrationStep', nextStep);
+
+    this.send(
+        'setTimeEvent',
+        'calibrationPositionChanged',
+        {
+            step: nextStep + 1,
+            position:
+                nextStep % 2 === 0
+                    ? 'left'
+                    : 'right'
+        }
+    );
+
+    this.scheduleNextCalibrationStep();
+},
+
+finishCalibration() {
+    this.cancelTimer('interTrialTimer');
+
+    this.send(
+        'setTimeEvent',
+        'calibrationEnded',
+        {
+            repeats: this.get('calibrationRepeats')
+        }
+    );
+
+    this.setProperties({
+        phase: 'intertrial',
+        calibrationStep: 0
+    });
+
+    this.startCurrentTrial();
 },
 
     startCurrentTrial() {
@@ -691,12 +835,16 @@ if (this.shouldShowAttentionGetter(nextIndex)) {
             currentTrialIndex: this.get('currentTrialIndex'),
             restartAfterPause: this.get('restartAfterPause')
         });
+if (this.get('phase') === 'calibration') {
+    this.scheduleNextCalibrationStep();
+    return;
+}
 
-        if (this.get('restartAfterPause')) {
-            this.startCurrentTrial();
-        } else {
-            this.endCurrentTrial();
-        }
+if (this.get('restartAfterPause')) {
+    this.startCurrentTrial();
+} else {
+    this.endCurrentTrial();
+}
     },
 
     trialEventData(trial) {
