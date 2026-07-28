@@ -119,9 +119,7 @@ export function shuffle(items, random) {
 }
 
 export function createYoking(words, random) {
-    let foilWords;
-    let hasFixedPoint;
-    let index;
+    let shuffledWords;
     const yoking = {};
 
     if (!words) {
@@ -132,31 +130,25 @@ export function createYoking(words, random) {
         random = Math.random;
     }
 
-    if (words.length < 2) {
+    if (words.length < 2 || words.length % 2 !== 0) {
         throw new Error(
-            'At least two words are required.'
+            'An even number of at least two words is required.'
         );
     }
 
-    do {
-        foilWords = shuffle(words, random);
-        hasFixedPoint = false;
+    shuffledWords = shuffle(words, random);
 
-        for (
-            index = 0;
-            index < words.length;
-            index += 1
-        ) {
-            if (foilWords[index] === words[index]) {
-                hasFixedPoint = true;
-                break;
-            }
-        }
-    } while (hasFixedPoint);
+    for (
+        let index = 0;
+        index < shuffledWords.length;
+        index += 2
+    ) {
+        const firstWord = shuffledWords[index];
+        const secondWord = shuffledWords[index + 1];
 
-    words.forEach(function(word, wordIndex) {
-        yoking[word] = foilWords[wordIndex];
-    });
+        yoking[firstWord] = secondWord;
+        yoking[secondWord] = firstWord;
+    }
 
     return yoking;
 }
