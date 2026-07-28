@@ -7,14 +7,7 @@
     background: #BFBFBF;
 
     #recorder {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 1px;
-        height: 1px;
-        overflow: hidden;
-        opacity: 0;
-        pointer-events: none;
+        display: none;
     }
 
     .exp-lwl__screen {
@@ -26,7 +19,7 @@
         background: #BFBFBF;
     }
 
-    /* Light and dark startup screens */
+    /* Light and dark screens only */
 
     .exp-lwl__full-screen-image {
         position: absolute;
@@ -34,19 +27,14 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        background: #BFBFBF;
     }
 
-    .exp-lwl__full-screen-image > img {
-        position: absolute;
-        inset: 0;
+    .exp-lwl__full-screen-image img {
         display: block;
         width: 100%;
         height: 100%;
         max-width: none;
         max-height: none;
-        margin: 0;
-        padding: 0;
         object-fit: cover;
     }
 
@@ -58,10 +46,9 @@
         background: #BFBFBF;
     }
 
-    /* Calibration and trial images */
+    /* Original working stimulus layout */
 
-    .exp-lwl__stimuli,
-    .exp-lwl__stimulus-container {
+    .exp-lwl__stimuli {
         position: absolute;
         inset: 0;
         display: flex;
@@ -74,8 +61,7 @@
         box-sizing: border-box;
     }
 
-    .exp-lwl__image-cell,
-    .exp-lwl__stimulus-side {
+    .exp-lwl__image-cell {
         display: flex;
         align-items: center;
         justify-content: center;
@@ -91,8 +77,6 @@
         object-fit: contain;
     }
 
-    /* Messages */
-
     .exp-lwl__message {
         position: absolute;
         inset: 0;
@@ -106,28 +90,11 @@
         background: #BFBFBF;
     }
 
-    /* Fixation */
-
-    .exp-lwl__fixation {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 100%;
-        background: #BFBFBF;
-    }
-
-    .exp-lwl__fixation-image,
-    .exp-lwl__fixation img {
-        display: block;
+    .exp-lwl__fixation-image {
         width: 120px;
         height: 120px;
         object-fit: contain;
     }
-
-    /* Attention getter */
 
     .exp-lwl__attention {
         position: absolute;
@@ -141,18 +108,13 @@
     }
 
     .exp-lwl__attention-video {
-        position: absolute;
-        inset: 0;
         display: block;
         width: auto;
         height: auto;
         max-width: 70vw;
         max-height: 70vh;
-        margin: auto;
         object-fit: contain;
     }
-
-    /* Diagnostics */
 
     .exp-lwl-diagnostic {
         position: fixed;
