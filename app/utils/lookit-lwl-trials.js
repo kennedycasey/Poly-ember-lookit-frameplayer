@@ -27,13 +27,107 @@ function createStimuli(words) {
 export const STIMULI = createStimuli(WORDS);
 
 export const CONDITION_ORDERS = [
-    ['conventional', 'novel_extension', 'challenge'],
-    ['conventional', 'challenge', 'novel_extension'],
-    ['novel_extension', 'conventional', 'challenge'],
-    ['novel_extension', 'challenge', 'conventional'],
-    ['challenge', 'conventional', 'novel_extension'],
-    ['challenge', 'novel_extension', 'conventional']
+    [
+        'conventional',
+        'novel_extension',
+        'challenge'
+    ],
+    [
+        'conventional',
+        'challenge',
+        'novel_extension'
+    ],
+    [
+        'novel_extension',
+        'conventional',
+        'challenge'
+    ],
+    [
+        'novel_extension',
+        'challenge',
+        'conventional'
+    ],
+    [
+        'challenge',
+        'conventional',
+        'novel_extension'
+    ],
+    [
+        'challenge',
+        'novel_extension',
+        'conventional'
+    ]
 ];
+
+/**
+ * Generate every possible complete pairing of an even-sized word list.
+ *
+ * Six words produce 15 unique yoking sets.
+ */
+function generateYokingSets(words) {
+    if (words.length === 0) {
+        return [[]];
+    }
+
+    const firstWord = words[0];
+    const yokingSets = [];
+
+    for (
+        let partnerIndex = 1;
+        partnerIndex < words.length;
+        partnerIndex += 1
+    ) {
+        const partnerWord =
+            words[partnerIndex];
+
+        const remainingWords =
+            words.filter(
+                function(word, index) {
+                    return (
+                        index !== 0 &&
+                        index !== partnerIndex
+                    );
+                }
+            );
+
+        const remainingSets =
+            generateYokingSets(
+                remainingWords
+            );
+
+        remainingSets.forEach(
+            function(pairSet) {
+                yokingSets.push(
+                    [
+                        [
+                            firstWord,
+                            partnerWord
+                        ]
+                    ].concat(pairSet)
+                );
+            }
+        );
+    }
+
+    return yokingSets;
+}
+
+function pairSetToYoking(pairSet) {
+    const yoking = {};
+
+    pairSet.forEach(function(pair) {
+        const firstWord = pair[0];
+        const secondWord = pair[1];
+
+        yoking[firstWord] = secondWord;
+        yoking[secondWord] = firstWord;
+    });
+
+    return yoking;
+}
+
+export const YOKING_SETS =
+    generateYokingSets(WORDS);
 
 export function mulberry32(seed) {
     let value = seed >>> 0;
@@ -55,12 +149,17 @@ export function mulberry32(seed) {
         );
 
         return (
-            (result ^ (result >>> 14)) >>> 0
+            (
+                result ^
+                (result >>> 14)
+            ) >>> 0
         ) / 4294967296;
     };
 }
 
-export function participantIdToNumber(participantId) {
+export function participantIdToNumber(
+    participantId
+) {
     let participantIdForText;
     let text;
     let hash;
@@ -72,10 +171,14 @@ export function participantIdToNumber(participantId) {
     ) {
         participantIdForText = '0';
     } else {
-        participantIdForText = participantId;
+        participantIdForText =
+            participantId;
     }
 
-    text = String(participantIdForText).trim();
+    text =
+        String(
+            participantIdForText
+        ).trim();
 
     if (/^\d+$/.test(text)) {
         return Number(text) >>> 0;
@@ -83,9 +186,17 @@ export function participantIdToNumber(participantId) {
 
     hash = 2166136261;
 
-    for (index = 0; index < text.length; index += 1) {
+    for (
+        index = 0;
+        index < text.length;
+        index += 1
+    ) {
         hash ^= text.charCodeAt(index);
-        hash = Math.imul(hash, 16777619);
+
+        hash = Math.imul(
+            hash,
+            16777619
+        );
     }
 
     return hash >>> 0;
@@ -93,6 +204,7 @@ export function participantIdToNumber(participantId) {
 
 export function shuffle(items, random) {
     const output = items.slice();
+
     let index;
     let swapIndex;
     let temporaryValue;
@@ -110,16 +222,31 @@ export function shuffle(items, random) {
             random() * (index + 1)
         );
 
-        temporaryValue = output[index];
-        output[index] = output[swapIndex];
-        output[swapIndex] = temporaryValue;
+        temporaryValue =
+            output[index];
+
+        output[index] =
+            output[swapIndex];
+
+        output[swapIndex] =
+            temporaryValue;
     }
 
     return output;
 }
 
-export function createYoking(words, random) {
+/**
+ * Retained as a general utility.
+ *
+ * Participant trials use the explicitly counterbalanced
+ * YOKING_SETS instead of this random pairing function.
+ */
+export function createYoking(
+    words,
+    random
+) {
     let shuffledWords;
+
     const yoking = {};
 
     if (!words) {
@@ -130,24 +257,35 @@ export function createYoking(words, random) {
         random = Math.random;
     }
 
-    if (words.length < 2 || words.length % 2 !== 0) {
+    if (
+        words.length < 2 ||
+        words.length % 2 !== 0
+    ) {
         throw new Error(
-            'An even number of at least two words is required.'
+            'An even number of at least ' +
+            'two words is required.'
         );
     }
 
-    shuffledWords = shuffle(words, random);
+    shuffledWords =
+        shuffle(words, random);
 
     for (
         let index = 0;
         index < shuffledWords.length;
         index += 2
     ) {
-        const firstWord = shuffledWords[index];
-        const secondWord = shuffledWords[index + 1];
+        const firstWord =
+            shuffledWords[index];
 
-        yoking[firstWord] = secondWord;
-        yoking[secondWord] = firstWord;
+        const secondWord =
+            shuffledWords[index + 1];
+
+        yoking[firstWord] =
+            secondWord;
+
+        yoking[secondWord] =
+            firstWord;
     }
 
     return yoking;
@@ -156,17 +294,26 @@ export function createYoking(words, random) {
 function copyTrial(trial) {
     const copiedTrial = {};
 
-    Object.keys(trial).forEach(function(key) {
-        copiedTrial[key] = trial[key];
-    });
+    Object.keys(trial).forEach(
+        function(key) {
+            copiedTrial[key] =
+                trial[key];
+        }
+    );
 
     return copiedTrial;
 }
 
-function assignBalancedSides(trials, random) {
+function assignBalancedSides(
+    trials,
+    random
+) {
     const targetSides = [];
     const assignedTrials = [];
-    const half = trials.length / 2;
+
+    const half =
+        trials.length / 2;
+
     let index;
     let targetSide;
     let targetIsLeft;
@@ -184,253 +331,473 @@ function assignBalancedSides(trials, random) {
         );
     }
 
-    for (index = 0; index < half; index += 1) {
+    for (
+        index = 0;
+        index < half;
+        index += 1
+    ) {
         targetSides.push('left');
         targetSides.push('right');
     }
 
-    const shuffledSides = shuffle(
-        targetSides,
-        random
+    const shuffledSides =
+        shuffle(
+            targetSides,
+            random
+        );
+
+    trials.forEach(
+        function(
+            trial,
+            trialIndex
+        ) {
+            targetSide =
+                shuffledSides[
+                    trialIndex
+                ];
+
+            targetIsLeft =
+                targetSide === 'left';
+
+            assignedTrial =
+                copyTrial(trial);
+
+            assignedTrial.targetSide =
+                targetSide;
+
+            assignedTrial.leftImage =
+                targetIsLeft
+                    ? trial.targetImage
+                    : trial.foilImage;
+
+            assignedTrial.rightImage =
+                targetIsLeft
+                    ? trial.foilImage
+                    : trial.targetImage;
+
+            assignedTrials.push(
+                assignedTrial
+            );
+        }
     );
-
-    trials.forEach(function(trial, trialIndex) {
-        targetSide = shuffledSides[trialIndex];
-        targetIsLeft = targetSide === 'left';
-        assignedTrial = copyTrial(trial);
-
-        assignedTrial.targetSide = targetSide;
-
-        assignedTrial.leftImage = targetIsLeft
-            ? trial.targetImage
-            : trial.foilImage;
-
-        assignedTrial.rightImage = targetIsLeft
-            ? trial.foilImage
-            : trial.targetImage;
-
-        assignedTrials.push(assignedTrial);
-    });
 
     return assignedTrials;
 }
 
-function shuffleWithoutAdjacentWords(trials, random) {
-    for (let attempt = 0; attempt < 100; attempt++) {
-        const remaining = shuffle(trials, random);
-        const ordered = [];
-
-        while (remaining.length > 0) {
-            const previousWord =
-                ordered.length > 0
-                    ? ordered[ordered.length - 1].word
-                    : null;
-
-            const valid = remaining.filter(
-                trial => trial.word !== previousWord
-            );
-
-            if (valid.length === 0) {
-                break;
-            }
-
-            const chosen =
-                valid[Math.floor(random() * valid.length)];
-
-            ordered.push(chosen);
-
-            remaining.splice(
-                remaining.indexOf(chosen),
-                1
-            );
-        }
-
-        if (ordered.length === trials.length) {
-            return ordered;
-        }
+/**
+ * Arrange trials so that two trials testing the same word
+ * never occur consecutively.
+ *
+ * This uses backtracking rather than a greedy retry loop,
+ * so it does not fail merely because of an unlucky sequence
+ * of random choices.
+ */
+function shuffleWithoutAdjacentWords(
+    trials,
+    random
+) {
+    if (typeof random !== 'function') {
+        random = Math.random;
     }
 
-    throw new Error(
-        'Could not arrange trials without adjacent repeated words.'
-    );
+    function buildOrder(
+        remaining,
+        ordered
+    ) {
+        if (remaining.length === 0) {
+            return ordered;
+        }
+
+        const previousWord =
+            ordered.length > 0
+                ? ordered[
+                    ordered.length - 1
+                ].word
+                : null;
+
+        const candidateIndexes = [];
+
+        remaining.forEach(
+            function(trial, index) {
+                if (
+                    trial.word !==
+                    previousWord
+                ) {
+                    candidateIndexes.push(
+                        index
+                    );
+                }
+            }
+        );
+
+        const shuffledCandidateIndexes =
+            shuffle(
+                candidateIndexes,
+                random
+            );
+
+        for (
+            let candidatePosition = 0;
+            candidatePosition <
+                shuffledCandidateIndexes.length;
+            candidatePosition += 1
+        ) {
+            const candidateIndex =
+                shuffledCandidateIndexes[
+                    candidatePosition
+                ];
+
+            const candidate =
+                remaining[
+                    candidateIndex
+                ];
+
+            const nextRemaining =
+                remaining.slice();
+
+            nextRemaining.splice(
+                candidateIndex,
+                1
+            );
+
+            const result =
+                buildOrder(
+                    nextRemaining,
+                    ordered.concat([
+                        candidate
+                    ])
+                );
+
+            if (result) {
+                return result;
+            }
+        }
+
+        return null;
+    }
+
+    const result =
+        buildOrder(
+            shuffle(trials, random),
+            []
+        );
+
+    if (!result) {
+        throw new Error(
+            'Could not arrange trials ' +
+            'without adjacent repeated words.'
+        );
+    }
+
+    return result;
 }
 
-export function generateConventionalBlock(options) {
+export function generateConventionalBlock(
+    options
+) {
     let stimuli;
     let yoking;
     let random;
     let resolvedYoking;
+
     const trials = [];
 
     options = options || {};
 
-    stimuli = options.stimuli || STIMULI;
-    yoking = options.yoking;
-    random = typeof options.random === 'function'
-        ? options.random
-        : Math.random;
+    stimuli =
+        options.stimuli ||
+        STIMULI;
 
-    resolvedYoking = yoking ||
-        createYoking(WORDS, random);
+    yoking =
+        options.yoking;
+
+    random =
+        typeof options.random ===
+        'function'
+            ? options.random
+            : Math.random;
+
+    resolvedYoking =
+        yoking ||
+        createYoking(
+            WORDS,
+            random
+        );
 
     WORDS.forEach(function(word) {
-        const foilWord = resolvedYoking[word];
+        const foilWord =
+            resolvedYoking[word];
 
-        stimuli[word].conventional.forEach(
-            function(targetImage, imageIndex) {
-                const foilImage =
-                    stimuli[foilWord]
-                        .conventional[imageIndex];
-
-                let repetition;
-
-                for (
-                    repetition = 1;
-                    repetition <= 2;
-                    repetition += 1
+        stimuli[word]
+            .conventional
+            .forEach(
+                function(
+                    targetImage,
+                    imageIndex
                 ) {
-                    trials.push({
-                        condition: 'conventional',
-                        word: word,
-                        audio: stimuli[word].audio,
-                        targetImage: targetImage,
-                        targetType: 'conventional',
-                        foilWord: foilWord,
-                        foilImage: foilImage,
-                        foilType: 'conventional',
-                        conventionalImageNumber:
-                            imageIndex + 1,
-                        repetition: repetition
-                    });
+                    const foilImage =
+                        stimuli[
+                            foilWord
+                        ].conventional[
+                            imageIndex
+                        ];
+
+                    for (
+                        let repetition = 1;
+                        repetition <= 2;
+                        repetition += 1
+                    ) {
+                        trials.push({
+                            condition:
+                                'conventional',
+
+                            word:
+                                word,
+
+                            audio:
+                                stimuli[
+                                    word
+                                ].audio,
+
+                            targetImage:
+                                targetImage,
+
+                            targetType:
+                                'conventional',
+
+                            foilWord:
+                                foilWord,
+
+                            foilImage:
+                                foilImage,
+
+                            foilType:
+                                'conventional',
+
+                            conventionalImageNumber:
+                                imageIndex + 1,
+
+                            repetition:
+                                repetition
+                        });
+                    }
                 }
-            }
-        );
+            );
     });
 
     return assignBalancedSides(
-        shuffleWithoutAdjacentWords(trials, random),
+        shuffleWithoutAdjacentWords(
+            trials,
+            random
+        ),
         random
     );
 }
 
-export function generateNovelExtensionBlock(options) {
+export function generateNovelExtensionBlock(
+    options
+) {
     let stimuli;
     let yoking;
     let random;
     let resolvedYoking;
+
     const trials = [];
 
     options = options || {};
 
-    stimuli = options.stimuli || STIMULI;
-    yoking = options.yoking;
-    random = typeof options.random === 'function'
-        ? options.random
-        : Math.random;
+    stimuli =
+        options.stimuli ||
+        STIMULI;
 
-    resolvedYoking = yoking ||
-        createYoking(WORDS, random);
+    yoking =
+        options.yoking;
+
+    random =
+        typeof options.random ===
+        'function'
+            ? options.random
+            : Math.random;
+
+    resolvedYoking =
+        yoking ||
+        createYoking(
+            WORDS,
+            random
+        );
 
     WORDS.forEach(function(word) {
-        const foilWord = resolvedYoking[word];
-        let repetition;
+        const foilWord =
+            resolvedYoking[word];
 
         for (
-            repetition = 1;
+            let repetition = 1;
             repetition <= 2;
             repetition += 1
         ) {
             trials.push({
-                condition: 'novel_extension',
-                word: word,
-                audio: stimuli[word].audio,
+                condition:
+                    'novel_extension',
+
+                word:
+                    word,
+
+                audio:
+                    stimuli[word].audio,
+
                 targetImage:
-                    stimuli[word].extension,
-                targetType: 'extension',
-                foilWord: foilWord,
+                    stimuli[
+                        word
+                    ].extension,
+
+                targetType:
+                    'extension',
+
+                foilWord:
+                    foilWord,
+
                 foilImage:
-                    stimuli[foilWord].extension,
-                foilType: 'extension',
-                repetition: repetition
+                    stimuli[
+                        foilWord
+                    ].extension,
+
+                foilType:
+                    'extension',
+
+                repetition:
+                    repetition
             });
         }
     });
 
     return assignBalancedSides(
-        shuffleWithoutAdjacentWords(trials, random),
+        shuffleWithoutAdjacentWords(
+            trials,
+            random
+        ),
         random
     );
 }
 
-export function generateChallengeBlock(options) {
+export function generateChallengeBlock(
+    options
+) {
     let stimuli;
     let random;
     let challengeTarget;
+
     const trials = [];
 
     options = options || {};
 
-    stimuli = options.stimuli || STIMULI;
+    stimuli =
+        options.stimuli ||
+        STIMULI;
 
-    random = typeof options.random === 'function'
-        ? options.random
-        : Math.random;
+    random =
+        typeof options.random ===
+        'function'
+            ? options.random
+            : Math.random;
 
     challengeTarget =
-        options.challengeTarget || 'conventional';
+        options.challengeTarget ||
+        'conventional';
 
     if (
-        challengeTarget !== 'conventional' &&
-        challengeTarget !== 'extension'
+        challengeTarget !==
+            'conventional' &&
+        challengeTarget !==
+            'extension'
     ) {
         throw new Error(
             'challengeTarget must be ' +
-            '"conventional" or "extension".'
+            '"conventional" or ' +
+            '"extension".'
         );
     }
 
-WORDS.forEach(function(word) {
-    const conventionalImage =
-        stimuli[word].conventional[0];
+    WORDS.forEach(function(word) {
+        /*
+         * Challenge trials use only:
+         *
+         * word1.png
+         * word-ext.png
+         *
+         * word2.png is not used here.
+         */
+        const conventionalImage =
+            stimuli[
+                word
+            ].conventional[0];
 
-    const conventionalIsTarget =
-        challengeTarget === 'conventional';
+        const conventionalIsTarget =
+            challengeTarget ===
+            'conventional';
 
-    for (let repetition = 1; repetition <= 2; repetition++) {
-        trials.push({
-            condition: 'challenge',
-            word: word,
-            audio: stimuli[word].audio,
-            targetImage:
-                conventionalIsTarget
-                    ? conventionalImage
-                    : stimuli[word].extension,
-            targetType:
-                conventionalIsTarget
-                    ? 'conventional'
-                    : 'extension',
-            foilWord: word,
-            foilImage:
-                conventionalIsTarget
-                    ? stimuli[word].extension
-                    : conventionalImage,
-            foilType:
-                conventionalIsTarget
-                    ? 'extension'
-                    : 'conventional',
-            conventionalImageNumber: 1,
-            repetition
-        });
-    }
-});
+        for (
+            let repetition = 1;
+            repetition <= 2;
+            repetition += 1
+        ) {
+            trials.push({
+                condition:
+                    'challenge',
+
+                word:
+                    word,
+
+                audio:
+                    stimuli[word].audio,
+
+                targetImage:
+                    conventionalIsTarget
+                        ? conventionalImage
+                        : stimuli[
+                            word
+                        ].extension,
+
+                targetType:
+                    conventionalIsTarget
+                        ? 'conventional'
+                        : 'extension',
+
+                foilWord:
+                    word,
+
+                foilImage:
+                    conventionalIsTarget
+                        ? stimuli[
+                            word
+                        ].extension
+                        : conventionalImage,
+
+                foilType:
+                    conventionalIsTarget
+                        ? 'extension'
+                        : 'conventional',
+
+                conventionalImageNumber:
+                    1,
+
+                repetition:
+                    repetition
+            });
+        }
+    });
 
     return assignBalancedSides(
-        shuffleWithoutAdjacentWords(trials, random),
+        shuffleWithoutAdjacentWords(
+            trials,
+            random
+        ),
         random
     );
 }
 
-export function validateTrialList(trials) {
+export function validateTrialList(
+    trials
+) {
     const expectedCounts = {
         conventional: 24,
         novel_extension: 12,
@@ -445,36 +812,49 @@ export function validateTrialList(trials) {
         );
     }
 
-    Object.keys(expectedCounts).forEach(
+    Object.keys(
+        expectedCounts
+    ).forEach(
         function(condition) {
             const expectedCount =
-                expectedCounts[condition];
+                expectedCounts[
+                    condition
+                ];
 
-            const block = trials.filter(
-                function(trial) {
-                    return (
-                        trial.condition === condition
-                    );
-                }
-            );
+            const block =
+                trials.filter(
+                    function(trial) {
+                        return (
+                            trial.condition ===
+                            condition
+                        );
+                    }
+                );
 
-            const leftCount = block.filter(
-                function(trial) {
-                    return (
-                        trial.targetSide === 'left'
-                    );
-                }
-            ).length;
+            const leftCount =
+                block.filter(
+                    function(trial) {
+                        return (
+                            trial.targetSide ===
+                            'left'
+                        );
+                    }
+                ).length;
 
-            const rightCount = block.filter(
-                function(trial) {
-                    return (
-                        trial.targetSide === 'right'
-                    );
-                }
-            ).length;
+            const rightCount =
+                block.filter(
+                    function(trial) {
+                        return (
+                            trial.targetSide ===
+                            'right'
+                        );
+                    }
+                ).length;
 
-            if (block.length !== expectedCount) {
+            if (
+                block.length !==
+                expectedCount
+            ) {
                 throw new Error(
                     condition +
                     ': expected ' +
@@ -486,8 +866,10 @@ export function validateTrialList(trials) {
             }
 
             if (
-                leftCount !== expectedCount / 2 ||
-                rightCount !== expectedCount / 2
+                leftCount !==
+                    expectedCount / 2 ||
+                rightCount !==
+                    expectedCount / 2
             ) {
                 throw new Error(
                     condition +
@@ -498,15 +880,20 @@ export function validateTrialList(trials) {
         }
     );
 
-    trials.forEach(function(trial) {
-        if (trial.targetImage === trial.foilImage) {
-            throw new Error(
-                'Trial ' +
-                trial.trialNumber +
-                ' has identical images.'
-            );
+    trials.forEach(
+        function(trial) {
+            if (
+                trial.targetImage ===
+                trial.foilImage
+            ) {
+                throw new Error(
+                    'Trial ' +
+                    trial.trialNumber +
+                    ' has identical images.'
+                );
+            }
         }
-    });
+    );
 
     return true;
 }
@@ -517,20 +904,27 @@ export function createParticipantTrials(
 ) {
     let seed;
     let challengeTarget;
-    let reuseYokingAcrossBlocks;
     let resolvedSeed;
     let random;
+
     let blockOrderIndex;
     let blockOrder;
+
     let sharedYoking;
-    let conventionalYoking;
-    let extensionYoking;
+    let yokingSetIndex;
+
+    let counterbalanceCell;
+    let counterbalanceCellCount;
+
     let participantIdForOutput;
 
     const participantNumber =
-        participantIdToNumber(participantId);
+        participantIdToNumber(
+            participantId
+        );
 
     const trials = [];
+
     let overallTrialNumber = 1;
 
     options = options || {};
@@ -541,68 +935,90 @@ export function createParticipantTrials(
         options.challengeTarget ||
         'conventional';
 
-    reuseYokingAcrossBlocks =
-        options.reuseYokingAcrossBlocks;
-
-    if (
-        reuseYokingAcrossBlocks === undefined ||
-        reuseYokingAcrossBlocks === null
-    ) {
-        reuseYokingAcrossBlocks = true;
-    }
-
     if (
         typeof seed === 'number' &&
         isFinite(seed) &&
         Math.floor(seed) === seed
     ) {
-        resolvedSeed = seed;
+        resolvedSeed =
+            seed;
     } else {
-        resolvedSeed = participantNumber;
+        resolvedSeed =
+            participantNumber;
     }
 
-    random = mulberry32(resolvedSeed);
+    random =
+        mulberry32(
+            resolvedSeed
+        );
+
+    /*
+     * There are:
+     *
+     * 6 condition orders
+     * 15 yoking sets
+     *
+     * Therefore there are 90 complete
+     * counterbalance cells.
+     */
+    counterbalanceCellCount =
+        CONDITION_ORDERS.length *
+        YOKING_SETS.length;
+
+    counterbalanceCell =
+        participantNumber %
+        counterbalanceCellCount;
 
     blockOrderIndex =
-        participantNumber %
+        counterbalanceCell %
         CONDITION_ORDERS.length;
 
+    yokingSetIndex =
+        Math.floor(
+            counterbalanceCell /
+            CONDITION_ORDERS.length
+        );
+
     blockOrder =
-        CONDITION_ORDERS[blockOrderIndex].slice();
+        CONDITION_ORDERS[
+            blockOrderIndex
+        ].slice();
 
-    sharedYoking = createYoking(
-        WORDS,
-        random
-    );
-
-    if (reuseYokingAcrossBlocks) {
-        conventionalYoking = sharedYoking;
-        extensionYoking = sharedYoking;
-    } else {
-        conventionalYoking = createYoking(
-            WORDS,
-            random
+    sharedYoking =
+        pairSetToYoking(
+            YOKING_SETS[
+                yokingSetIndex
+            ]
         );
 
-        extensionYoking = createYoking(
-            WORDS,
-            random
-        );
-    }
+    /*
+     * Use the selected yoking set for both
+     * yoked conditions. This preserves the
+     * planned yoking counterbalance.
+     */
+    const conventionalYoking =
+        sharedYoking;
+
+    const extensionYoking =
+        sharedYoking;
 
     const blocks = {
         conventional:
             generateConventionalBlock({
                 stimuli: STIMULI,
-                yoking: conventionalYoking,
-                random: random
+                yoking:
+                    conventionalYoking,
+                random:
+                    random
             }),
 
         novel_extension:
             generateNovelExtensionBlock({
                 stimuli: STIMULI,
-                yoking: extensionYoking,
-                random: random
+                yoking:
+                    extensionYoking,
+                random:
+                    random
             }),
 
         challenge:
@@ -625,8 +1041,13 @@ export function createParticipantTrials(
     }
 
     blockOrder.forEach(
-        function(condition, blockIndex) {
-            blocks[condition].forEach(
+        function(
+            condition,
+            blockIndex
+        ) {
+            blocks[
+                condition
+            ].forEach(
                 function(
                     trial,
                     trialWithinBlockIndex
@@ -643,6 +1064,12 @@ export function createParticipantTrials(
                     outputTrial.counterbalanceVersion =
                         blockOrderIndex + 1;
 
+                    outputTrial.yokingVersion =
+                        yokingSetIndex + 1;
+
+                    outputTrial.counterbalanceCell =
+                        counterbalanceCell + 1;
+
                     outputTrial.blockOrder =
                         blockOrder.slice();
 
@@ -655,7 +1082,10 @@ export function createParticipantTrials(
                     outputTrial.trialNumber =
                         overallTrialNumber;
 
-                    trials.push(outputTrial);
+                    trials.push(
+                        outputTrial
+                    );
+
                     overallTrialNumber += 1;
                 }
             );
@@ -665,14 +1095,28 @@ export function createParticipantTrials(
     validateTrialList(trials);
 
     return {
-        trials: trials,
-        seed: resolvedSeed,
+        trials:
+            trials,
+
+        seed:
+            resolvedSeed,
+
         counterbalanceVersion:
             blockOrderIndex + 1,
-        blockOrder: blockOrder.slice(),
+
+        yokingVersion:
+            yokingSetIndex + 1,
+
+        counterbalanceCell:
+            counterbalanceCell + 1,
+
+        blockOrder:
+            blockOrder.slice(),
+
         yoking: {
             conventional:
                 conventionalYoking,
+
             novelExtension:
                 extensionYoking
         }

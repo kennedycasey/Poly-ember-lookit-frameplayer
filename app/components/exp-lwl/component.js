@@ -148,12 +148,18 @@ itiAudio: {
                 participantSeed: {
                     type: 'number'
                 },
-                counterbalanceVersion: {
-                    type: 'number'
-                },
-                blockOrder: {
-                    type: 'array'
-                },
+counterbalanceVersion: {
+    type: 'number'
+},
+yokingVersion: {
+    type: 'number'
+},
+counterbalanceCell: {
+    type: 'number'
+},
+blockOrder: {
+    type: 'array'
+},
                 yoking: {
                     type: 'object'
                 },
@@ -174,9 +180,11 @@ itiAudio: {
     attentionVideoIndex: 0,
     currentAttentionVideo: null,    
 
-    participantSeed: null,
-    counterbalanceVersion: null,
-    blockOrder: null,
+participantSeed: null,
+counterbalanceVersion: null,
+yokingVersion: null,
+counterbalanceCell: null,
+blockOrder: null,
     yoking: null,
     generatedTrials: null,
 
@@ -356,9 +364,15 @@ this.setProperties({
     experimentStarted: true,
     trials: generated.trials,
     generatedTrials: generated.trials,
-    participantSeed: generated.seed,
-    counterbalanceVersion: generated.counterbalanceVersion,
-    blockOrder: generated.blockOrder,
+participantSeed: generated.seed,
+counterbalanceVersion:
+    generated.counterbalanceVersion,
+yokingVersion:
+    generated.yokingVersion,
+counterbalanceCell:
+    generated.counterbalanceCell,
+blockOrder:
+    generated.blockOrder,
     yoking: generated.yoking,
     currentTrialIndex: 0,
     completedTrialCount: 0,
@@ -368,14 +382,28 @@ this.setProperties({
     phase: 'intertrial'
 });
 
-        this.send('setTimeEvent', 'experimentGenerated', {
-            participantId,
-            seed: generated.seed,
-            counterbalanceVersion: generated.counterbalanceVersion,
-            blockOrder: generated.blockOrder,
-            yoking: generated.yoking,
-            trialCount: generated.trials.length
-        });
+this.send('setTimeEvent', 'experimentGenerated', {
+    participantId: participantId,
+    seed: generated.seed,
+
+    counterbalanceVersion:
+        generated.counterbalanceVersion,
+
+    yokingVersion:
+        generated.yokingVersion,
+
+    counterbalanceCell:
+        generated.counterbalanceCell,
+
+    blockOrder:
+        generated.blockOrder,
+
+    yoking:
+        generated.yoking,
+
+    trialCount:
+        generated.trials.length
+});
 
         if (this.get('calibrationEnabled')) {
     this.startCalibration();
@@ -705,6 +733,8 @@ playTrialAudio() {
         return;
     }
 
+    this.stopAudio();
+
     const trial = this.get('currentTrial');
     const audioUrl = this.joinUrl(
         this.get('audioBaseUrl'),
@@ -887,12 +917,25 @@ if (this.shouldShowAttentionGetter(nextIndex)) {
         this.clearTimers();
         this.stopAudio();
 
-        this.send('setTimeEvent', 'experimentCompleted', {
-            completedTrialCount: this.get('completedTrialCount'),
-            seed: this.get('participantSeed'),
-            counterbalanceVersion: this.get('counterbalanceVersion'),
-            blockOrder: this.get('blockOrder')
-        });
+this.send('setTimeEvent', 'experimentCompleted', {
+    completedTrialCount:
+        this.get('completedTrialCount'),
+
+    seed:
+        this.get('participantSeed'),
+
+    counterbalanceVersion:
+        this.get('counterbalanceVersion'),
+
+    yokingVersion:
+        this.get('yokingVersion'),
+
+    counterbalanceCell:
+        this.get('counterbalanceCell'),
+
+    blockOrder:
+        this.get('blockOrder')
+});
 
         if (this.get('doRecording')) {
             if (!this.get('stopping') && !this.get('stoppedRecording')) {
@@ -997,7 +1040,11 @@ if (this.get('restartAfterPause')) {
             repetition: trial.repetition,
             conventionalImageNumber: trial.conventionalImageNumber || null,
             seed: trial.seed,
-            counterbalanceVersion: trial.counterbalanceVersion
+counterbalanceVersion:
+    trial.counterbalanceVersion,
+
+yokingVersion:
+    trial.yokingVersion
         };
     },
 
