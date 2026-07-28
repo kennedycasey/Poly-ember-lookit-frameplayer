@@ -66,7 +66,11 @@ attentionVideos: {
     default: [
         'AG1.mp4',
         'AG2.mp4', 
-        'AG3.mp4'
+        'AG3.mp4', 
+        'AG4.mp4', 
+        'AG5.mp4', 
+        'AG6.mp4', 
+        'AG7.mp4'
     ]
 },
 
