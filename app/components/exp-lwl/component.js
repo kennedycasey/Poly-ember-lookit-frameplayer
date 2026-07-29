@@ -86,7 +86,7 @@ darkImage: {
 
 lightDarkDuration: {
     type: 'number',
-    default: 750
+    default: 1250
 },
 
 attentionEveryNTrials: {
