@@ -53,12 +53,12 @@ calibrationEnabled: {
 
 calibrationDuration: {
     type: 'number',
-    default: 750
+    default: 1000
 },
 
 calibrationRepeats: {
     type: 'number',
-    default: 2
+    default: 3
 },
 
 attentionVideos: {
