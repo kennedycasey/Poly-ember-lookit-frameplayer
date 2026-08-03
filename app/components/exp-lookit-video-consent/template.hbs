@@ -208,18 +208,18 @@
                 </span>
             </div>
         </div>
-
         <div class="video-consent-numbered-direction">
             <span class="video-consent-number">3.</span>
 
             <span class="video-consent-direction">
-                {{ t "exp-lookit-video-consent.read-statement-below" htmlSafe=true }}
-                {{#if (not (or (eq template "consent_003") (eq template "consent_002") (eq template "consent_001")))}} ({{ t "exp-lookit-video-consent.signed-alternative" }}){{/if}}:
+                {{ t "exp-lookit-video-consent.read-statement-below" htmlSafe=true }}:
             </span>
         </div>
 
         <div class="well video-consent-prompt">
-            <span class="breaklines exp-lookit-video-consent-prompt">"{{#if consent_statement_text}}{{consent_statement_text}}{{else if prompt_only_adults}}{{ t "exp-lookit-video-consent.prompt-adult-only"}}{{else}}{{t "exp-lookit-video-consent.prompt"}}{{/if}}"</span>
+            <span class="breaklines exp-lookit-video-consent-prompt">
+                "{{#if consent_statement_text}}{{consent_statement_text}}{{else if prompt_only_adults}}{{ t "exp-lookit-video-consent.prompt-adult-only"}}{{else}}{{t "exp-lookit-video-consent.prompt"}}{{/if}}"
+            </span>
         </div>
 
         {{#if prompt_all_adults}}
