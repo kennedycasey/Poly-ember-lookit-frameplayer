@@ -7,10 +7,17 @@
 <br>
 <div class="video-consent-body">
 
-    <p> {{t "consent-template-5.intro-sentence" name=PIName institution=institution experiment=experiment.name }} {{ exp-format summary_statement }} </p>
+    <p>TITLE OF RESEARCH: Language Learning and Communication</p>
+    <p>PRINCIPAL INVESTIGATOR: Casey Lew-Williams, Ph.D.</p>
+    <p>IRB PROTOCOL #: 7117 (Princeton University)</p>
 
-    <h2> {{#if purpose_header}} {{purpose_header}} {{else}} {{t "consent-template-5.purpose-header" }} {{/if}}</h2>
-    <p> {{ exp-format purpose }} </p>
+    <p>Your son/daughter is being invited to take part in a research study. Before you decide about your child's participation in this study, it is important that you understand why the research is being done and what it will involve. Please take the time to read the following information carefully. Please contact the researcher if there is anything that is not clear or if you need more information.</p>
+    
+    <h1>Key information about the study</h1>
+    <p>Your informed consent is being sought for research. Participation in the research is voluntary.</p>
+
+    <h2>Purpose of Research</h2>
+    <p>The purpose of this study is to better understand how children learn sounds, words, and grammar.</p>
 
     <h2> {{#if procedures_header}} {{procedures_header}} {{else}} {{t "consent-template-5.procedures-header" }} {{/if}}</h2>
     <p> {{t "consent-template-5.duration-statement" duration=experiment.duration }} {{exp-format procedures}} </p>
@@ -29,6 +36,7 @@
     <h2> {{#if benefits_header}} {{ benefits_header }} {{else}} {{t "consent-template-5.benefits-header"}} {{/if}} </h2>
     <p> {{ exp-format payment }} </p>
 
+    <h1>Additional information about the study</h1>
     <h2> {{t "consent-template-5.data-collection-header" }} </h2>
     <p>
         {{t "consent-template-5.data-collection-1" only_adult=prompt_only_adults }} {{t "consent-template-5.data-collection-2" }}
@@ -117,6 +125,7 @@
         </p>
     {{/if}}
 
+    <h1>Who to contact with questions</h1>
     <h2> {{t "consent-template-5.contact-header" }}</h2>
     <p>
         {{t "consent-template-5.contact-statement-1" name=PIName institution=institution contact=PIContact only_adult=prompt_only_adults omit_injury=omit_injury_phrase }}
@@ -125,4 +134,32 @@
         {{t "consent-template-5.contact-statement-2" only_adult=prompt_only_adults}}
     </p>
 
+    <p>
+        If you have questions regarding your rights as a research subject, or if
+        problems arise that you do not feel you can discuss with the investigator,
+        please contact:
+    </p>
+
+    <p>
+        <strong>Princeton University Institutional Review Board</strong><br>
+        Phone: (609) 258-0865<br>
+        Email: irb@princeton.edu
+    </p>
+
+    <p>
+        The IRB is an independent committee, separate from the research team, that
+        reviews research to protect your rights and well-being.
+    </p>
+
+    <hr>
+
+    <p>I understand the following:</p>
+    
+    <div style="padding-left: 30px;">
+        <p>A. My child’s participation in this study is voluntary, and I may withdraw my consent and discontinue participation at any time. My refusal to participate will not result in any penalty.</p>
+
+        <p>B. My child and I will be video- and audio-recorded during the study.</p>
+
+        <p>C. I do not waive any legal rights or release Princeton University, its agents, or you from liability for negligence.</p>
+    </div>
 </div>
