@@ -183,6 +183,8 @@ blockOrder: {
     completedTrialCount: 0,
     attentionVideoIndex: 0,
     currentAttentionVideo: null,    
+    attentionVideoPreloads: null,
+    attentionVideoElements: null,
 
 participantSeed: null,
 counterbalanceVersion: null,
@@ -316,6 +318,8 @@ attentionVideoUrl: computed(
         this.set('blockOrder', []);
         this.set('generatedTrials', []);
         this.set('yoking', {});
+        this.set('attentionVideoPreloads', {});
+        this.set('attentionVideoElements', []);
     },
 
     didInsertElement() {
@@ -409,6 +413,8 @@ this.send('setTimeEvent', 'experimentGenerated', {
         generated.trials.length
 });
 
+this.preloadAttentionVideos();
+
 if (this.get('calibrationEnabled')) {
     this.startCalibration();
 } else {
@@ -425,6 +431,128 @@ preloadImage(url) {
         };
 
         img.src = url;
+    });
+},
+
+preloadAttentionVideo(filename) {
+    const existingPreloads =
+        this.get('attentionVideoPreloads') || {};
+
+    if (existingPreloads[filename]) {
+        return existingPreloads[filename];
+    }
+
+    const videoUrl = this.joinUrl(
+        this.get('attentionVideoBaseUrl'),
+        filename
+    );
+
+    const video = document.createElement('video');
+
+    video.preload = 'auto';
+    video.muted = true;
+    video.playsInline = true;
+    video.src = videoUrl;
+
+    const preloadPromise = new Promise(resolve => {
+        let finished = false;
+
+        const finish = function(success) {
+            if (finished) {
+                return;
+            }
+
+            finished = true;
+
+            video.removeEventListener(
+                'canplaythrough',
+                handleReady
+            );
+
+            video.removeEventListener(
+                'loadeddata',
+                handleReady
+            );
+
+            video.removeEventListener(
+                'error',
+                handleError
+            );
+
+            resolve({
+                filename,
+                videoUrl,
+                success
+            });
+        };
+
+        const handleReady = function() {
+            finish(true);
+        };
+
+        const handleError = function() {
+            console.error(
+                'Failed to preload attention video:',
+                {
+                    filename,
+                    videoUrl,
+                    mediaError: video.error
+                }
+            );
+
+            finish(false);
+        };
+
+        video.addEventListener(
+            'canplaythrough',
+            handleReady
+        );
+
+        /*
+         * Some browsers never emit canplaythrough,
+         * but loadeddata still means the first frame
+         * is available.
+         */
+        video.addEventListener(
+            'loadeddata',
+            handleReady
+        );
+
+        video.addEventListener(
+            'error',
+            handleError
+        );
+
+        video.load();
+    });
+
+    existingPreloads[filename] =
+        preloadPromise;
+
+    this.set(
+        'attentionVideoPreloads',
+        existingPreloads
+    );
+
+    const videoElements =
+        this.get('attentionVideoElements') || [];
+
+    videoElements.push(video);
+
+    this.set(
+        'attentionVideoElements',
+        videoElements
+    );
+
+    return preloadPromise;
+},
+
+preloadAttentionVideos() {
+    const videos =
+        this.get('attentionVideos') || [];
+
+    videos.forEach(filename => {
+        this.preloadAttentionVideo(filename);
     });
 },
 
@@ -455,26 +583,46 @@ startAttentionGetter() {
         this.get('attentionVideoIndex') %
         videos.length;
 
-    const filename = videos[videoIndex];
+    const filename =
+        videos[videoIndex];
 
-    this.setProperties({
-        phase: 'attention',
-        currentTrial: null,
-        currentAttentionVideo: filename,
-        attentionVideoIndex: videoIndex + 1
-    });
+    this.preloadAttentionVideo(filename)
+        .then(() => {
+            if (
+                this.get('paused') ||
+                this.get('finishing') ||
+                this.get('isDestroyed')
+            ) {
+                return;
+            }
 
-    this.send(
-        'setTimeEvent',
-        'attentionGetterStarted',
-        {
-            completedTrialCount:
-                this.get('completedTrialCount'),
-            attentionVideo: filename,
-            attentionVideoUrl:
-                this.get('attentionVideoUrl')
-        }
-    );
+            this.setProperties({
+                phase: 'attention',
+                currentTrial: null,
+                currentAttentionVideo: filename,
+                attentionVideoIndex:
+                    videoIndex + 1
+            });
+
+            this.send(
+                'setTimeEvent',
+                'attentionGetterStarted',
+                {
+                    completedTrialCount:
+                        this.get(
+                            'completedTrialCount'
+                        ),
+
+                    attentionVideo:
+                        filename,
+
+                    attentionVideoUrl:
+                        this.get(
+                            'attentionVideoUrl'
+                        )
+                }
+            );
+        });
 },
 
 endAttentionGetter() {
