@@ -19,8 +19,9 @@
     <h2>Purpose of Research</h2>
     <p>The purpose of this study is to better understand how children learn sounds, words, and grammar.</p>
 
-    <h2> {{#if procedures_header}} {{procedures_header}} {{else}} {{t "consent-template-5.procedures-header" }} {{/if}}</h2>
-    <p> {{t "consent-template-5.duration-statement" duration=experiment.duration }} {{exp-format procedures}} </p>
+    <h2>Procedures</h2>
+    <p>This study will take 5-30 minutes to complete. You will be with your child the entire time during the study. Your child will listen to speech while viewing pictures or short animated movies. They may be tested to see what they learned. During the study, you may be asked to close your eyes and/or wear sunglasses so that you do not learn what your child learns and accidentally influence their responses. We may also administer a standardized vocabulary test to your child or other short questionnaires about child development. You may also be asked to complete a language development inventory at home before or after participating in this study.</p>
+    <p>If you choose to allow your child to be in this study, your child has the right to be treated with respect, including respect for their decision about whether to continue or stop being in the study. Your child is free to stop being in the study at any time, even if you have already given permission for your child to be in the study. Choosing not to be in this study or stopping participation will not result in any penalty or loss of benefits to which your child is otherwise entitled.</p>
 
     <h2> {{#if participation_header}} {{participation_header}} {{else}} {{t "consent-template-5.participation-header" }} {{/if}}</h2>
     <p>
@@ -28,15 +29,15 @@
     </p>
     {{#if voluntary_participation}} <p> {{ exp-format voluntary_participation }} </p>{{/if}}
 
-    {{#if risk_statement}}
-        <h2> {{#if risk_header}} {{ risk_header }} {{else}} {{t "consent-template-5.risk-header"}} {{/if}}</h2>
-        <p> {{ exp-format risk_statement }} </p>
-    {{/if}}
+    <h2>Risks or discomforts</h2>
+    <p>There are no known physical or emotional risks involved in this study beyond those in everyday life.</p>
 
-    <h2> {{#if benefits_header}} {{ benefits_header }} {{else}} {{t "consent-template-5.benefits-header"}} {{/if}} </h2>
-    <p> {{ exp-format payment }} </p>
+    <h2>Benefits</h2>
+    <p>Your child is not likely to have any direct benefits from participating in this research study, but children usually enjoy the pictures, movies, and sounds in the study. You will have the opportunity to learn more about how people learn language.</p>
 
     <h1>Additional information about the study</h1>
+    <h2>Compensation</h2>
+    <p>You will receive a $10 Amazon gift card as compensation for participating in this study.</p>
     <h2> {{t "consent-template-5.data-collection-header" }} </h2>
     <p>
         {{t "consent-template-5.data-collection-1" only_adult=prompt_only_adults }} {{t "consent-template-5.data-collection-2" }}
@@ -149,5 +150,23 @@
     <p>
         The IRB is an independent committee, separate from the research team, that
         reviews research to protect your rights and well-being.
+    </p>
+</div>
+
+<hr>
+
+<p><strong>I understand the following:</strong></p>
+
+<div style="padding-left: 30px;">
+    <p>
+        A. My child’s participation in this study is voluntary, and I may withdraw my consent and discontinue participation at any time. My refusal to participate will not result in any penalty.
+    </p>
+
+    <p>
+        B. My child and I will be video- and audio-recorded during the study.
+    </p>
+
+    <p>
+        C. I do not waive any legal rights or release Princeton University, its agents, or you from liability for negligence.
     </p>
 </div>
