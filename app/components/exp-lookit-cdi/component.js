@@ -2,36 +2,15 @@ import Ember from 'ember';
 import ExpLookitSurveyComponent from '../exp-lookit-survey/component';
 
 const {
-    computed
+    computed,
+    run
 } = Ember;
 
-/**
- * CDI vocabulary checklist.
- *
- * Extends exp-lookit-survey so the component keeps the existing:
- * - dynamic-form setup
- * - response collection
- * - validation
- * - Previous button behavior
- * - Finish/Next button behavior
- */
 export default ExpLookitSurveyComponent.extend({
     classNames: ['exp-lookit-cdi'],
 
-    /**
-     * Default text used when the protocol does not provide a title.
-     *
-     * The template should use:
-     *     {{displayChecklistTitle}}
-     */
     defaultChecklistTitle: 'Vocabulary checklist',
 
-    /**
-     * Default text used when the protocol does not provide instructions.
-     *
-     * The template should use:
-     *     {{displayChecklistInstructions}}
-     */
     defaultChecklistInstructions:
         'Children understand many more words than they say. ' +
         'We are particularly interested in the words your child SAYS. ' +
@@ -39,16 +18,9 @@ export default ExpLookitSurveyComponent.extend({
         'If your child uses a different pronunciation of a word, mark it anyway. ' +
         'This is only a sample of words; your child may know many other words not on this list.',
 
-    /**
-     * Look for checklistTitle in both possible configuration locations.
-     *
-     * Some Lookit versions expose frame properties directly on the component.
-     * Other versions keep them under frameContext.
-     */
     displayChecklistTitle: computed(
         'checklistTitle',
         'frameContext.checklistTitle',
-        'defaultChecklistTitle',
         function() {
             return (
                 this.get('checklistTitle') ||
@@ -58,13 +30,9 @@ export default ExpLookitSurveyComponent.extend({
         }
     ),
 
-    /**
-     * Look for checklistInstructions in both possible configuration locations.
-     */
     displayChecklistInstructions: computed(
         'checklistInstructions',
         'frameContext.checklistInstructions',
-        'defaultChecklistInstructions',
         function() {
             return (
                 this.get('checklistInstructions') ||
@@ -74,9 +42,6 @@ export default ExpLookitSurveyComponent.extend({
         }
     ),
 
-    /**
-     * Count the properties in the dynamic-form schema.
-     */
     wordCount: computed(
         'formSchema.schema.properties',
         'frameContext.formSchema.schema.properties',
@@ -88,5 +53,86 @@ export default ExpLookitSurveyComponent.extend({
 
             return Object.keys(properties).length;
         }
-    )
+    ),
+
+    didRender() {
+        this._super(...arguments);
+
+        run.scheduleOnce('afterRender', this, this.formatChecklist);
+    },
+
+    formatChecklist() {
+        const root = this.element;
+
+        if (!root) {
+            return;
+        }
+
+        /*
+         * Find the actual rendered checkbox fields rather than assuming
+         * a particular dynamic-form wrapper structure.
+         */
+        const checkboxes = root.querySelectorAll(
+            '.exp-lookit-cdi-form input[type="checkbox"]'
+        );
+
+        const fields = [];
+
+        Array.prototype.forEach.call(checkboxes, (checkbox) => {
+            let field = checkbox.closest('.form-group');
+
+            /*
+             * Some versions of Alpaca/dynamic-form use .alpaca-field
+             * instead of Bootstrap's .form-group.
+             */
+            if (!field) {
+                field = checkbox.closest('.alpaca-field');
+            }
+
+            /*
+             * Final fallback: use the checkbox's nearest containing div.
+             */
+            if (!field) {
+                field = checkbox.parentElement;
+            }
+
+            if (field && fields.indexOf(field) === -1) {
+                fields.push(field);
+            }
+        });
+
+        fields.forEach((field, index) => {
+            const visualRow = index % 25;
+            const column = Math.floor(index / 25);
+
+            field.classList.add('cdi-word');
+            field.classList.add(`cdi-column-${column + 1}`);
+            field.classList.add(`cdi-row-${visualRow + 1}`);
+
+            if (visualRow % 2 === 0) {
+                field.classList.add('cdi-row-gray');
+            } else {
+                field.classList.remove('cdi-row-gray');
+            }
+        });
+
+        /*
+         * Apply the grid to the common parent that actually contains
+         * all checkbox fields.
+         */
+        if (fields.length > 0) {
+            let grid = fields[0].parentElement;
+
+            while (
+                grid &&
+                !fields.every((field) => field.parentElement === grid)
+            ) {
+                grid = grid.parentElement;
+            }
+
+            if (grid) {
+                grid.classList.add('cdi-checkbox-grid');
+            }
+        }
+    }
 });
