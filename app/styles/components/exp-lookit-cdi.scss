@@ -1,92 +1,212 @@
 .exp-lookit-cdi {
     max-width: 1200px;
-    margin-right: auto;
-    margin-left: auto;
-}
+    margin: 0 auto;
+    padding: 24px 18px 40px;
 
-.exp-lookit-cdi-header {
-    max-width: 1000px;
-    margin: 20px auto 28px;
-}
-
-.exp-lookit-cdi-header h2 {
-    margin-bottom: 16px;
-    text-align: center;
-}
-
-.exp-lookit-cdi-instructions {
-    font-size: 17px;
-    line-height: 1.6;
-}
-
-.exp-lookit-cdi-count {
-    margin-top: 12px;
-    font-weight: 600;
-    text-align: center;
-}
-
-/*
- * This class is added by component.js to the actual element that
- * contains all 100 rendered checkbox fields.
- */
-.cdi-checkbox-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    grid-template-rows: repeat(25, minmax(36px, auto));
-    grid-auto-flow: column;
-    column-gap: 20px;
-    row-gap: 0;
-}
-
-.cdi-checkbox-grid .cdi-word {
-    box-sizing: border-box;
-    min-width: 0;
-    margin: 0;
-    padding: 7px 10px;
-    border-radius: 0;
-}
-
-.cdi-checkbox-grid .cdi-row-gray {
-    background-color: #eeeeee;
-}
-
-.cdi-checkbox-grid .cdi-word:hover {
-    box-shadow: inset 0 0 0 1px #bdbdbd;
-}
-
-.cdi-checkbox-grid .checkbox {
-    margin: 0;
-}
-
-.cdi-checkbox-grid .checkbox label {
-    display: block;
-    margin: 0;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: 400;
-}
-
-.cdi-checkbox-grid input[type="checkbox"] {
-    margin-right: 8px;
-}
-
-@media (max-width: 767px) {
-    .cdi-checkbox-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-rows: repeat(50, minmax(36px, auto));
-    }
-}
-
-@media (max-width: 480px) {
-    .cdi-checkbox-grid {
-        display: block;
+    .cdi-card {
+        overflow: hidden;
+        background: #fff;
+        border: 1px solid #dfe3e8;
+        border-radius: 12px;
+        box-shadow: 0 3px 14px rgba(0, 0, 0, 0.07);
     }
 
-    .cdi-checkbox-grid .cdi-word:nth-child(odd) {
-        background-color: #eeeeee;
+    .cdi-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+        padding: 24px 28px 18px;
+        background: #f7f9fb;
+        border-bottom: 1px solid #e8ebee;
     }
 
-    .cdi-checkbox-grid .cdi-word:nth-child(even) {
-        background-color: transparent;
+    .cdi-title {
+        margin: 0 0 8px;
+        font-size: 30px;
+        line-height: 1.2;
+    }
+
+    .cdi-instructions {
+        max-width: 760px;
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.5;
+    }
+
+    .cdi-count {
+        flex: 0 0 auto;
+        padding: 7px 12px;
+        background: #fff;
+        border: 1px solid #ccd5dd;
+        border-radius: 999px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .cdi-hint {
+        margin: 0;
+        padding: 16px 28px 0;
+        color: #58636d;
+        font-size: 14px;
+    }
+
+    .cdi-form {
+        padding: 18px 28px 28px;
+    }
+
+    /*
+     * The Alpaca container holds the 100 fields.
+     *
+     * Filling by column produces:
+     * column 1: words 1–25
+     * column 2: words 26–50
+     * column 3: words 51–75
+     * column 4: words 76–100
+     */
+    .cdi-form .alpaca-container {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        grid-template-rows: repeat(25, 48px) !important;
+        grid-auto-flow: column !important;
+        gap: 0 16px !important;
+
+        /*
+         * Alternating horizontal rows.
+         *
+         * Each stripe is 48px high, matching the grid row height.
+         */
+        background-image: repeating-linear-gradient(
+            to bottom,
+            #eeeeee 0,
+            #eeeeee 48px,
+            #ffffff 48px,
+            #ffffff 96px
+        );
+    }
+
+    /*
+     * Each Alpaca field must occupy one grid cell.
+     */
+    .cdi-form .alpaca-container > .alpaca-container-item {
+        box-sizing: border-box;
+        min-width: 0;
+        height: 48px;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+    }
+
+    /*
+     * Remove Bootstrap/Alpaca spacing that can disrupt the grid.
+     */
+    .cdi-form .alpaca-field,
+    .cdi-form .form-group,
+    .cdi-form .checkbox {
+        box-sizing: border-box;
+        height: 48px;
+        min-height: 48px;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: 0 !important;
+    }
+
+    .cdi-form .checkbox label,
+    .cdi-form .alpaca-field-checkbox label {
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+        width: 100%;
+        height: 48px;
+        min-height: 48px;
+        margin: 0;
+        padding: 0 12px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 1.2;
+    }
+
+    .cdi-form input[type="checkbox"] {
+        flex: 0 0 auto;
+        width: 20px;
+        height: 20px;
+        margin: 0 10px 0 0;
+        cursor: pointer;
+    }
+
+    .cdi-form .alpaca-container-item:hover {
+        box-shadow: inset 0 0 0 1px #aeb7bf;
+    }
+
+    /*
+     * Hide any title generated by the JSON schema because the component
+     * already displays its own title and instructions.
+     */
+    .cdi-form legend,
+    .cdi-form .alpaca-container-label {
+        display: none;
+    }
+
+    .cdi-controls {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        margin-top: 20px;
+    }
+
+    .cdi-next {
+        min-width: 150px;
+        margin-left: auto;
+    }
+
+    /*
+     * Two columns on narrower displays:
+     * words 1–50 and words 51–100.
+     */
+    @media (max-width: 767px) {
+        padding: 12px 10px 28px;
+
+        .cdi-header {
+            display: block;
+            padding: 20px;
+        }
+
+        .cdi-count {
+            display: inline-block;
+            margin-top: 14px;
+        }
+
+        .cdi-hint {
+            padding: 14px 20px 0;
+        }
+
+        .cdi-form {
+            padding: 16px 20px 22px;
+        }
+
+        .cdi-form .alpaca-container {
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            grid-template-rows: repeat(50, 48px) !important;
+        }
+    }
+
+    /*
+     * One ordinary vertical list on phones.
+     */
+    @media (max-width: 480px) {
+        .cdi-form .alpaca-container {
+            display: block !important;
+            background-image: none;
+        }
+
+        .cdi-form .alpaca-container > .alpaca-container-item:nth-child(odd) {
+            background: #eeeeee !important;
+        }
+
+        .cdi-form .alpaca-container > .alpaca-container-item:nth-child(even) {
+            background: #ffffff !important;
+        }
     }
 }
