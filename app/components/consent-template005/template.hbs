@@ -7,21 +7,27 @@
 <br>
 <div class="video-consent-body">
 
-    <p><strong>TITLE OF RESEARCH:</strong>Language Learning and Communication</p>
-    <p><strong>PRINCIPAL INVESTIGATOR:</strong> Casey Lew-Williams, Ph.D.</p>
-    <p><strong>IRB PROTOCOL #:</strong> 7117 (Princeton University)</p>
+    <p>TITLE OF RESEARCH: Language Learning and Communication</p>
+    <p>PRINCIPAL INVESTIGATOR: Casey Lew-Williams, Ph.D.</p>
+    <p>IRB PROTOCOL #: 7117 (Princeton University)</p>
 
     <p>Your son/daughter is being invited to take part in a research study. Before you decide about your child's participation in this study, it is important that you understand why the research is being done and what it will involve. Please take the time to read the following information carefully. Please contact the researcher if there is anything that is not clear or if you need more information.</p>
     
     <h1>Key information about the study</h1>
     <p>Your informed consent is being sought for research. Participation in the research is voluntary.</p>
 
-    <h2>Purpose of research</h2>
+    <h2>Purpose of Research</h2>
     <p>The purpose of this study is to better understand how children learn sounds, words, and grammar.</p>
 
     <h2>Procedures</h2>
     <p>This study will take 5-30 minutes to complete. You will be with your child the entire time during the study. Your child will listen to speech while viewing pictures or short animated movies. They may be tested to see what they learned. During the study, you may be asked to close your eyes and/or wear sunglasses so that you do not learn what your child learns and accidentally influence their responses. We may also administer a standardized vocabulary test to your child or other short questionnaires about child development. You may also be asked to complete a language development inventory at home before or after participating in this study.</p>
     <p>If you choose to allow your child to be in this study, your child has the right to be treated with respect, including respect for their decision about whether to continue or stop being in the study. Your child is free to stop being in the study at any time, even if you have already given permission for your child to be in the study. Choosing not to be in this study or stopping participation will not result in any penalty or loss of benefits to which your child is otherwise entitled.</p>
+
+    <h2> {{#if participation_header}} {{participation_header}} {{else}} {{t "consent-template-5.participation-header" }} {{/if}}</h2>
+    <p>
+        {{t "consent-template-5.participation-content" only_adult=prompt_only_adults }}
+    </p>
+    {{#if voluntary_participation}} <p> {{ exp-format voluntary_participation }} </p>{{/if}}
 
     <h2>Risks or discomforts</h2>
     <p>There are no known physical or emotional risks involved in this study beyond those in everyday life.</p>
@@ -32,21 +38,93 @@
     <h1>Additional information about the study</h1>
     <h2>Compensation</h2>
     <p>You will receive a $10 Amazon gift card as compensation for participating in this study.</p>
+    <h2> {{t "consent-template-5.data-collection-header" }} </h2>
+    <p>
+        {{t "consent-template-5.data-collection-1" only_adult=prompt_only_adults }} {{t "consent-template-5.data-collection-2" }}
+    </p>
+    <p>
+        {{t "consent-template-5.data-collection-3" }}
+    </p>
 
-    <h2>Confidentiality</h2>
-    <p>All aspects of your child's participation in this research will be confidential. We will not include any information that will make it possible to identify you or your child. Research records will be kept either in a locked cabinet or on a password-protected computer. Only authorized researchers will have access to your records. Results of this study may be used for teaching, research, publication, or presentations at scientific meetings. Your child's de- identified data file may also be shared with other research laboratories. If your child's individual results are discussed or shared with other research laboratories, his/her name and other identifying information will be protected using a code number rather than his/her name.</p>
+    <h2> {{t "consent-template-5.video-privacy-header" }}</h2>
+    <p>
+        {{t "consent-template-5.video-privacy-consent" }}
+    </p>
 
-    <h2>Data collection and webcam recording</h2>
-    <p>During the session, you and your child will be recorded via your computer's webcam and microphone. Video recordings and other data you enter are sent securely to our lab. At the end of the session, you will be prompted to choose a privacy level for your webcam recordings. You will have the option to withdraw your video data at this point. Data is stored securely on Lookit servers and by researchers. However, there is always a small risk that data transmitted over the internet may be intercepted or that the security of stored data may be compromised. No video clips will be published or shared unless you allow this when selecting a privacy level. If we do not receive a consent recording (the video you'll make to the right) for this session and cannot verify that you agreed to participate, no other video from your session will be viewed.</p>
+    {{#if private_level_only}}
+        <p>
+            {{t "consent-template-5.video-privacy-private-description" }} {{t "consent-template-5.video-privacy-withdraw-private-only" }}
+        </p>
+    {{else}}
+        <p>
+            {{t "consent-template-5.video-privacy-overview" }}:
+            <ul>
+                <li>"{{t "consent-template-5.video-privacy-Private" }}": {{t "consent-template-5.video-privacy-private-description" }}</li>
+                <li>"{{t "consent-template-5.video-privacy-Scientific" }}": {{t "consent-template-5.video-privacy-scientific-description" }}
+                </li>
+                <li>"{{t "consent-template-5.video-privacy-Publicity" }}": {{t "consent-template-5.video-privacy-publicity-description" }}
+                </li>
+            </ul>
+            {{t "consent-template-5.video-privacy-withdraw" }}
+        </p>
+    {{/if}}
 
-    <h2>Use of data by study researchers</h2>
-    <p>The research group led by Casey Lew-Williams at Princeton University will have access to video and other data collected during this session. We will also have access to your account profile, demographic survey, and the child profile for the child who is participating, including changes you make in the future to any of this information. We may study your child's responses in connection with his or her previous responses to this or other studies run by our group, siblings' responses to this or other studies run by our group, or demographic survey responses.</p>
+    {{#if include_databrary}}
+        <p>
+            {{t "consent-template-5.databrary" htmlSafe=true }}
+        </p>
+    {{/if}}
+    {{#if additional_video_privacy_statement}}
+        <p>
+            {{exp-format additional_video_privacy_statement}}
+        </p>
+    {{/if}}
 
-    <h2>Use of data by Lookit</h2>
-    <p>Because this study is being run on the Lookit platform, researchers working on the Lookit project at MIT will also have access to the data collected during this session, in addition to your account data, child profiles, and demographic survey responses. This data may be used by Lookit to detect and fix technical problems or identify new features that would be helpful; provide support to study researchers; assess data quality (for instance, how well an observer can tell which direction children are looking); evaluate the site's success in reaching a diverse population; and characterize family engagement (for instance, looking at what aspects of a study make parents more interested in coming back later).</p>
+    <h2> {{t "consent-template-5.data-use-researchers-header" }} </h2>
+    <p>
+        {{t "consent-template-5.data-use-researchers-content-1" name=PIName institution=institution }}
+        <ul>
+            <li> {{t "consent-template-5.data-use-researchers-item-1" }}</li>
+            <li> {{t "consent-template-5.data-use-researchers-item-2" }}</li>
+            <li> {{t "consent-template-5.data-use-researchers-item-3" only_adult=prompt_only_adults }}</li>
+        </ul>
+        {{t "consent-template-5.data-use-researchers-content-2" only_adult=prompt_only_adults }}
+    </p>
+    {{#if datause}}
+        <p>
+            {{exp-format datause}}
+        </p>
+    {{/if}}
 
-    <h2>Publication of results</h2>
-    <p>The results of the research may be presented at scientific meetings or published in scientific journals. Raw data (for instance, looking times to the left and right of the screen) may be published when it cannot identify children. We never publish children's birthdates or names, and we never publish your demographic data in conjunction with your child's video.</p>
+    <h2> {{t "consent-template-5.data-use-Lookit-header" }}</h2>
+    <p>
+        {{t "consent-template-5.data-use-Lookit-content" }}
+    </p>
+
+
+
+    <h2> {{t "consent-template-5.publication-header" }}</h2>
+    <p>
+        {{t "consent-template-5.publication-content" only_adult=prompt_only_adults }}
+    </p>
+
+    {{#if additional_segments}}
+        {{#each additional_segments as |segment|}}
+            <h2> {{exp-format segment.title}} </h2>
+            <p> {{exp-format segment.text}} </p>
+        {{/each}}
+    {{/if}}
+
+    <h2> {{t "consent-template-5.research-subject-rights-header" }}</h2>
+    <p> {{exp-format research_rights_statement}} </p>
+
+    {{#if gdpr}}
+        <h2> {{t "consent-template-5.gdpr-header" }} </h2>
+        <p> {{t "consent-template-5.gdpr-personal" }}: {{exp-format gdpr_personal_data}}. {{t "consent-template-5.gdpr-sensitive" }}: {{exp-format gdpr_sensitive_data}} </p>
+        <p>
+            {{t "consent-template-5.gdpr-2" }}
+        </p>
+    {{/if}}
 
     <h1>Who to contact with questions</h1>
     <h2> {{t "consent-template-5.contact-header" }}</h2>
@@ -81,7 +159,7 @@
 
 <div style="padding-left: 30px;">
     <p>
-        A. My child's participation in this study is voluntary, and I may withdraw my consent and discontinue participation at any time. My refusal to participate will not result in any penalty.
+        A. My child’s participation in this study is voluntary, and I may withdraw my consent and discontinue participation at any time. My refusal to participate will not result in any penalty.
     </p>
 
     <p>
